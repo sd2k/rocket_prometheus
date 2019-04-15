@@ -19,6 +19,11 @@ env:
 matrix:
   fast_finish: true
   include:
+    - &test_build
+      rust: "nightly"
+      env:
+        - RUN_RUSTFMT=false
+        - RUN_TEST=true
     - &rustfmt_build
       rust: "nightly"
       env:
