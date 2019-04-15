@@ -63,6 +63,8 @@ By default this crate tracks two metrics:
 The 'rocket' prefix of these metrics can be changed by setting the
 `ROCKET_PROMETHEUS_NAMESPACE` environment variable.
 
+## Custom Metrics
+
 Further metrics can be tracked by registering them with the registry of the
 PrometheusMetrics instance:
 
