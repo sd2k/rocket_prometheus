@@ -30,7 +30,7 @@ matrix:
         - RUN_RUSTFMT=true
         - RUN_TEST=false
     - &clippy_build
-      rust: "stable"
+      rust: "nightly"
       env:
         - RUN_CLIPPY=true
         - RUN_TEST=false

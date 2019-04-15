@@ -26,5 +26,5 @@ maintenance = { status = "passively-maintained" }
 
 [package.metadata.template_ci]
 versions = ["nightly"]
-clippy = { version = "stable" }
+clippy = { version = "nightly" }
 rustfmt = { version = "nightly" }
