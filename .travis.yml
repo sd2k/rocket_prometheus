@@ -17,6 +17,8 @@ env:
     - RUN_BENCH=false
 
 matrix:
+  allow_failures:
+    - env: RUN_CLIPPY=true
   fast_finish: true
   include:
     - &test_build
