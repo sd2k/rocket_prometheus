@@ -1,5 +1,7 @@
 # Rocket Prometheus
 
+[![Build Status](https://travis-ci.org/sd2k/rocket_prometheus.svg?branch=master)](https://travis-ci.org/sd2k/rocket_prometheus)
+
 Prometheus instrumentation for Rocket applications.
 
 ## Usage
