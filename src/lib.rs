@@ -66,7 +66,7 @@ The 'rocket' prefix of these metrics can be changed by setting the
 Further metrics can be tracked by registering them with the registry of the
 PrometheusMetrics instance:
 
-```rust,check
+```rust
 #![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use]
