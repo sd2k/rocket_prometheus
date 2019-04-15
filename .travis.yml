@@ -18,7 +18,7 @@ env:
 
 matrix:
   allow_failures:
-    - env: RUN_CLIPPY=true
+    - env: RUN_CLIPPY=true RUN_TEST=false RUN_RUSTFMT=false RUN_BENCH=false
   fast_finish: true
   include:
     - &test_build
