@@ -18,10 +18,10 @@ use rocket_prometheus::PrometheusMetrics;
 fn main() {
     let prometheus = PrometheusMetrics::new();
     # if false {
-        rocket::ignite()
-            .attach(prometheus.clone())
-            .mount("/metrics", prometheus)
-            .launch();
+    rocket::ignite()
+        .attach(prometheus.clone())
+        .mount("/metrics", prometheus)
+        .launch();
     # }
 }
 ```
@@ -97,11 +97,11 @@ fn main() {
         .register(Box::new(NAME_COUNTER.clone()))
         .unwrap();
     # if false {
-        rocket::ignite()
-            .attach(prometheus.clone())
-            .mount("/", routes![hello])
-            .mount("/metrics", prometheus)
-            .launch();
+    rocket::ignite()
+        .attach(prometheus.clone())
+        .mount("/", routes![hello])
+        .mount("/metrics", prometheus)
+        .launch();
     # }
 }
 ```
