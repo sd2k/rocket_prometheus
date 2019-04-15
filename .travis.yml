@@ -13,12 +13,9 @@ rust:
 env:
   global:
     - RUN_TEST=true
-    - RUN_CLIPPY=false
     - RUN_BENCH=false
 
 matrix:
-  allow_failures:
-    - env: RUN_CLIPPY=true RUN_TEST=false RUN_RUSTFMT=false RUN_BENCH=false
   fast_finish: true
   include:
     - &test_build
@@ -30,11 +27,6 @@ matrix:
       rust: "nightly"
       env:
         - RUN_RUSTFMT=true
-        - RUN_TEST=false
-    - &clippy_build
-      rust: "nightly"
-      env:
-        - RUN_CLIPPY=true
         - RUN_TEST=false
 
 before_script:
@@ -54,10 +46,6 @@ script:
     fi'
   - bash -c 'if [[ "$RUN_RUSTFMT" == "true" ]]; then
       cargo fmt -v -- --check
-      ;
-    fi'
-  - bash -c 'if [[ "$RUN_CLIPPY" == "true" ]]; then
-      cargo clippy -- -D warnings
       ;
     fi'
 
