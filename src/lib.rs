@@ -119,6 +119,11 @@ use rocket::{
     Data, Handler, Request, Response, Route,
 };
 
+/// Re-export Prometheus so users can use it without having to explicitly
+/// add a specific version to their dependencies, which can result in
+/// mysterious compiler error messages.
+pub use prometheus;
+
 /// Environment variable used to configure the namespace of metrics exposed
 /// by PrometheusMetrics.
 const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
