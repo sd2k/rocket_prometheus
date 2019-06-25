@@ -75,9 +75,11 @@ PrometheusMetrics instance:
 extern crate rocket;
 
 use lazy_static::lazy_static;
-use prometheus::{opts, IntCounterVec};
 use rocket::http::RawStr;
-use rocket_prometheus::PrometheusMetrics;
+use rocket_prometheus::{
+    prometheus::{opts, IntCounterVec},
+    PrometheusMetrics,
+};
 
 lazy_static! {
     static ref NAME_COUNTER: IntCounterVec =
