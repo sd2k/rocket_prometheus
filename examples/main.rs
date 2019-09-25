@@ -46,5 +46,6 @@ fn main() {
         .attach(prometheus.clone())
         .mount("/", routes![routes::hello, routes::hello_post])
         .mount("/metrics", prometheus)
-        .launch();
+        .launch()
+        .expect("Could not launch Rocket!");
 }

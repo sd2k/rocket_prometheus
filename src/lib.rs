@@ -109,12 +109,12 @@ fn main() {
 */
 #![deny(missing_docs)]
 
-use std::{env, time::Instant};
+use std::{env, future::Future, pin::Pin, time::Instant};
 
 use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncoder};
 use rocket::{
     fairing::{Fairing, Info, Kind},
-    handler::Outcome,
+    handler::{HandlerFuture, Outcome},
     http::Method,
     Data, Handler, Request, Response, Route,
 };
@@ -281,39 +281,51 @@ impl Fairing for PrometheusMetrics {
         }
     }
 
-    fn on_request(&self, request: &mut Request, _: &Data) {
-        request.local_cache(|| TimerStart(Some(Instant::now())));
+    fn on_request<'a>(
+        &'a self,
+        request: &'a mut Request<'_>,
+        _: &'a Data,
+    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
+        Box::pin(async move {
+            request.local_cache(|| TimerStart(Some(Instant::now())));
+        })
     }
 
-    fn on_response(&self, request: &Request, response: &mut Response) {
-        // Don't touch metrics if the request didn't match a route.
-        if request.route().is_none() {
-            return;
-        }
+    fn on_response<'a>(
+        &'a self,
+        request: &'a Request<'_>,
+        response: &'a mut Response<'_>,
+    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
+        Box::pin(async move {
+            // Don't touch metrics if the request didn't match a route.
+            if request.route().is_none() {
+                return;
+            }
 
-        let endpoint = request.route().unwrap().uri.to_string();
-        let method = request.method().as_str();
-        let status = response.status().code.to_string();
-        self.http_requests_total
-            .with_label_values(&[&endpoint, method, &status])
-            .inc();
-
-        let start_time = request.local_cache(|| TimerStart(None));
-        if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
-            // Can replace this with `duration.as_secs_f64()` when `duration_float`
-            // feature is stabilised (https://github.com/rust-lang/rust/issues/54361).
-            // let duration_secs = duration.as_secs_f64();
-            let duration_secs =
-                (duration.as_secs() as f64) + f64::from(duration.subsec_nanos()) / NANOS_PER_SEC;
-            self.http_requests_duration_seconds
+            let endpoint = request.route().unwrap().uri.to_string();
+            let method = request.method().as_str();
+            let status = response.status().code.to_string();
+            self.http_requests_total
                 .with_label_values(&[&endpoint, method, &status])
-                .observe(duration_secs);
-        }
+                .inc();
+
+            let start_time = request.local_cache(|| TimerStart(None));
+            if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
+                // Can replace this with `duration.as_secs_f64()` when `duration_float`
+                // feature is stabilised (https://github.com/rust-lang/rust/issues/54361).
+                // let duration_secs = duration.as_secs_f64();
+                let duration_secs = (duration.as_secs() as f64)
+                    + f64::from(duration.subsec_nanos()) / NANOS_PER_SEC;
+                self.http_requests_duration_seconds
+                    .with_label_values(&[&endpoint, method, &status])
+                    .observe(duration_secs);
+            }
+        })
     }
 }
 
 impl Handler for PrometheusMetrics {
-    fn handle<'r>(&self, req: &'r Request, _: Data) -> Outcome<'r> {
+    fn handle<'r>(&self, req: &'r Request, _: Data) -> HandlerFuture<'r> {
         // Gather the metrics.
         let mut buffer = vec![];
         let encoder = TextEncoder::new();
