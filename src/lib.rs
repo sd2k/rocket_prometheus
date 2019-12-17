@@ -15,15 +15,13 @@ Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
 ```rust
 use rocket_prometheus::PrometheusMetrics;
 
-fn main() {
-    let prometheus = PrometheusMetrics::new();
-    # if false {
-    rocket::ignite()
-        .attach(prometheus.clone())
-        .mount("/metrics", prometheus)
-        .launch();
-    # }
-}
+let prometheus = PrometheusMetrics::new();
+# if false {
+rocket::ignite()
+    .attach(prometheus.clone())
+    .mount("/metrics", prometheus)
+    .launch();
+# }
 ```
 
 This will expose metrics like this at the /metrics endpoint of your application:
@@ -156,15 +154,13 @@ const NANOS_PER_SEC: f64 = 1_000_000_000_f64;
 /// ```rust
 /// use rocket_prometheus::PrometheusMetrics;
 ///
-/// fn main() {
-///     let prometheus = PrometheusMetrics::new();
-///     # if false {
-///         rocket::ignite()
-///             .attach(prometheus.clone())
-///             .mount("/metrics", prometheus)
-///             .launch();
-///     # }
-/// }
+/// let prometheus = PrometheusMetrics::new();
+/// # if false {
+/// rocket::ignite()
+///     .attach(prometheus.clone())
+///     .mount("/metrics", prometheus)
+///     .launch();
+/// # }
 /// ```
 ///
 /// Metrics will then be available on the "/metrics" endpoint:
@@ -217,10 +213,8 @@ impl PrometheusMetrics {
     ///         .expect("Could not create counter")
     /// });
     ///
-    /// fn main() {
-    ///     let prometheus = PrometheusMetrics::new();
-    ///     prometheus.registry().register(Box::new(MY_COUNTER.clone()));
-    /// }
+    /// let prometheus = PrometheusMetrics::new();
+    /// prometheus.registry().register(Box::new(MY_COUNTER.clone()));
     /// ```
     pub fn registry(&self) -> &Registry {
         &self.registry
