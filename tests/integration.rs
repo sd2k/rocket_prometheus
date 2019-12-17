@@ -61,14 +61,18 @@ fn main() {
     let mut metrics = client.get("/metrics").dispatch();
     let response = metrics.body_string().unwrap();
     assert_eq!(
-        response.lines().enumerate().filter_map(|(i, line)|
+        response
+            .lines()
+            .enumerate()
+            .filter_map(|(i, line)|
             // Skip out the 'sum' lines since they depend on request duration.
             if i != 18 && i != 32 {
                 Some(line)
             } else {
                 None
-            }
-        ).collect::<Vec<&str>>().join("\n"),
+            })
+            .collect::<Vec<&str>>()
+            .join("\n"),
         r#"# HELP name_counter Count of names
 # TYPE name_counter counter
 name_counter{name="bar"} 1
@@ -104,5 +108,6 @@ rocket_http_requests_duration_seconds_count{endpoint="/hello/<name>",method="POS
 # HELP rocket_http_requests_total Total number of HTTP requests
 # TYPE rocket_http_requests_total counter
 rocket_http_requests_total{endpoint="/hello/<name>",method="GET",status="200"} 3
-rocket_http_requests_total{endpoint="/hello/<name>",method="POST",status="200"} 1"#);
+rocket_http_requests_total{endpoint="/hello/<name>",method="POST",status="200"} 1"#
+    );
 }
