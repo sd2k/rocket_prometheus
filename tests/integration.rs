@@ -3,16 +3,16 @@
 #[macro_use]
 extern crate rocket;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use prometheus::{opts, IntCounterVec};
 use rocket::{http::ContentType, local::Client};
 use rocket_prometheus::PrometheusMetrics;
 use serde_json::json;
 
-lazy_static! {
-    static ref NAME_COUNTER: IntCounterVec =
-        IntCounterVec::new(opts!("name_counter", "Count of names"), &["name"]).unwrap();
-}
+static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
+    IntCounterVec::new(opts!("name_counter", "Count of names"), &["name"])
+        .expect("Could not create lazy IntCounterVec")
+});
 
 mod routes {
     use rocket::http::RawStr;
@@ -36,7 +36,6 @@ mod routes {
     pub fn hello_post(name: String, person: Json<Person>) -> String {
         format!("Hello, {} year old named {}!", person.age, name)
     }
-
 }
 
 #[test]

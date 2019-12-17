@@ -74,17 +74,17 @@ PrometheusMetrics instance:
 #[macro_use]
 extern crate rocket;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use rocket::http::RawStr;
 use rocket_prometheus::{
     prometheus::{opts, IntCounterVec},
     PrometheusMetrics,
 };
 
-lazy_static! {
-    static ref NAME_COUNTER: IntCounterVec =
-        IntCounterVec::new(opts!("name_counter", "Count of names"), &["name"]).unwrap();
-}
+static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
+    IntCounterVec::new(opts!("name_counter", "Count of names"), &["name"])
+        .expect("Could not create NAME_COUNTER")
+});
 
 #[get("/hello/<name>")]
 pub fn hello(name: &RawStr) -> String {
@@ -208,13 +208,14 @@ impl PrometheusMetrics {
     /// on the PrometheusMetrics handler.
     ///
     /// ```rust
-    /// use lazy_static::lazy_static;
+    /// use once_cell::sync::Lazy;
     /// use prometheus::{opts, IntCounter};
     /// use rocket_prometheus::PrometheusMetrics;
     ///
-    /// lazy_static! {
-    ///     static ref MY_COUNTER: IntCounter = IntCounter::new("my_counter", "A counter I use a lot").unwrap();
-    /// }
+    /// static MY_COUNTER: Lazy<IntCounter> = Lazy::new(|| {
+    ///     IntCounter::new("my_counter", "A counter I use a lot")
+    ///         .expect("Could not create counter")
+    /// });
     ///
     /// fn main() {
     ///     let prometheus = PrometheusMetrics::new();

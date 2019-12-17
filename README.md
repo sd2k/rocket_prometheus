@@ -78,17 +78,17 @@ PrometheusMetrics instance:
 #[macro_use]
 extern crate rocket;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use rocket::http::RawStr;
 use rocket_prometheus::{
     prometheus::{opts, IntCounterVec},
     PrometheusMetrics,
 };
 
-lazy_static! {
-    static ref NAME_COUNTER: IntCounterVec =
-        IntCounterVec::new(opts!("name_counter", "Count of names"), &["name"]).unwrap();
-}
+static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
+    IntCounterVec::new(opts!("name_counter", "Count of names"), &["name"])
+        .expect("Could not create lazy IntCounterVec")
+});
 
 #[get("/hello/<name>")]
 pub fn hello(name: &RawStr) -> String {
