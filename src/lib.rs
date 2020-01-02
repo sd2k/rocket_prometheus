@@ -109,7 +109,7 @@ fn main() {
 */
 #![deny(missing_docs)]
 
-use std::{env, time::SystemTime};
+use std::{env, time::Instant};
 
 use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncoder};
 use rocket::{
@@ -271,7 +271,7 @@ impl Default for PrometheusMetrics {
 
 /// Value stored in request-local state to measure response time.
 #[derive(Copy, Clone)]
-struct TimerStart(Option<SystemTime>);
+struct TimerStart(Option<Instant>);
 
 impl Fairing for PrometheusMetrics {
     fn info(&self) -> Info {
@@ -282,7 +282,7 @@ impl Fairing for PrometheusMetrics {
     }
 
     fn on_request(&self, request: &mut Request, _: &Data) {
-        request.local_cache(|| TimerStart(Some(SystemTime::now())));
+        request.local_cache(|| TimerStart(Some(Instant::now())));
     }
 
     fn on_response(&self, request: &Request, response: &mut Response) {
@@ -299,7 +299,7 @@ impl Fairing for PrometheusMetrics {
             .inc();
 
         let start_time = request.local_cache(|| TimerStart(None));
-        if let Some(Ok(duration)) = start_time.0.map(|st| st.elapsed()) {
+        if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
             // Can replace this with `duration.as_secs_f64()` when `duration_float`
             // feature is stabilised (https://github.com/rust-lang/rust/issues/54361).
             // let duration_secs = duration.as_secs_f64();
