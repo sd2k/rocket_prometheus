@@ -222,10 +222,13 @@ impl PrometheusMetrics {
 }
 
 impl PrometheusMetrics {
-    /// Create a new PrometheusMetrics.
+    /// Create a new `PrometheusMetrics`.
     pub fn new() -> Self {
-        let registry = Registry::new();
+        Self::with_registry(Registry::new())
+    }
 
+    /// Create a new `PrometheusMetrics` with a custom `Registry`.
+    pub fn with_registry(registry: Registry) -> Self {
         let namespace = env::var(NAMESPACE_ENV_VAR).unwrap_or_else(|_| "rocket".into());
 
         let http_requests_total_opts =
