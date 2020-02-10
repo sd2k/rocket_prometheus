@@ -109,7 +109,7 @@ fn main() {
 */
 #![deny(missing_docs)]
 
-use std::{env, future::Future, pin::Pin, time::Instant};
+use std::{env, time::Instant};
 
 use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncoder};
 use rocket::{
@@ -273,6 +273,7 @@ impl Default for PrometheusMetrics {
 #[derive(Copy, Clone)]
 struct TimerStart(Option<Instant>);
 
+#[rocket::async_trait]
 impl Fairing for PrometheusMetrics {
     fn info(&self) -> Info {
         Info {
@@ -281,46 +282,34 @@ impl Fairing for PrometheusMetrics {
         }
     }
 
-    fn on_request<'a>(
-        &'a self,
-        request: &'a mut Request<'_>,
-        _: &'a Data,
-    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
-        Box::pin(async move {
-            request.local_cache(|| TimerStart(Some(Instant::now())));
-        })
+    async fn on_request<'a>(&'a self, req: &'a mut Request<'_>, _: &'a Data) {
+        req.local_cache(|| TimerStart(Some(Instant::now())));
     }
 
-    fn on_response<'a>(
-        &'a self,
-        request: &'a Request<'_>,
-        response: &'a mut Response<'_>,
-    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
-        Box::pin(async move {
-            // Don't touch metrics if the request didn't match a route.
-            if request.route().is_none() {
-                return;
-            }
+    async fn on_response<'a>(&'a self, req: &'a Request<'_>, response: &'a mut Response<'_>) {
+        // Don't touch metrics if the request didn't match a route.
+        if req.route().is_none() {
+            return;
+        }
 
-            let endpoint = request.route().unwrap().uri.to_string();
-            let method = request.method().as_str();
-            let status = response.status().code.to_string();
-            self.http_requests_total
+        let endpoint = req.route().unwrap().uri.to_string();
+        let method = req.method().as_str();
+        let status = response.status().code.to_string();
+        self.http_requests_total
+            .with_label_values(&[&endpoint, method, &status])
+            .inc();
+
+        let start_time = req.local_cache(|| TimerStart(None));
+        if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
+            // Can replace this with `duration.as_secs_f64()` when `duration_float`
+            // feature is stabilised (https://github.com/rust-lang/rust/issues/54361).
+            // let duration_secs = duration.as_secs_f64();
+            let duration_secs =
+                (duration.as_secs() as f64) + f64::from(duration.subsec_nanos()) / NANOS_PER_SEC;
+            self.http_requests_duration_seconds
                 .with_label_values(&[&endpoint, method, &status])
-                .inc();
-
-            let start_time = request.local_cache(|| TimerStart(None));
-            if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
-                // Can replace this with `duration.as_secs_f64()` when `duration_float`
-                // feature is stabilised (https://github.com/rust-lang/rust/issues/54361).
-                // let duration_secs = duration.as_secs_f64();
-                let duration_secs = (duration.as_secs() as f64)
-                    + f64::from(duration.subsec_nanos()) / NANOS_PER_SEC;
-                self.http_requests_duration_seconds
-                    .with_label_values(&[&endpoint, method, &status])
-                    .observe(duration_secs);
-            }
-        })
+                .observe(duration_secs);
+        }
     }
 }
 
