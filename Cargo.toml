@@ -22,10 +22,4 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 [badges]
-travis-ci = { repository = "sd2k/rocket_prometheus", branch = "master" }
 maintenance = { status = "passively-maintained" }
-
-[package.metadata.template_ci]
-versions = ["nightly"]
-clippy = { run = false }
-rustfmt = { run = true, version = "nightly", allow_failure = false }

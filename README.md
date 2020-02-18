@@ -1,6 +1,6 @@
 # Rocket Prometheus
 
-[![Build Status](https://travis-ci.org/sd2k/rocket_prometheus.svg?branch=master)](https://travis-ci.org/sd2k/rocket_prometheus)
+[![Build Status](https://github.com/sd2k/rocket_prometheus/workflows/Rust/badge.svg)](https://github.com/sd2k/rocket_prometheus/actions)
 [![docs.rs](https://docs.rs/rocket_prometheus/badge.svg)](https://docs.rs/rocket_prometheus)
 [![crates.io](https://img.shields.io/crates/v/rocket_prometheus.svg)](https://crates.io/crates/rocket_prometheus)
 
