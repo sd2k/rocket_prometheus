@@ -108,6 +108,7 @@ fn main() {
 
 */
 #![deny(missing_docs)]
+#![forbid(unsafe_code)]
 
 use std::{env, time::Instant};
 
