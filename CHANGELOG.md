@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2020-06-19
+### Changed
+
+- Don't require the default features of the `prometheus` or `rocket` dependencies. This should improve compile times for crates which also don't require those features. This is a breaking change since we re-export `prometheus` (which will now have a reduced public API) but is unlikely to affect many users, since the Protobuf format has not been supported by Prometheus for some time.
+
 ## [0.5.0] - 2020-05-18
 ### Changed
 
@@ -42,7 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First version of the crate released to crates.io.
 
-[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/sd2k/rocket_prometheus/compare/v0.3.1...v0.3.2
