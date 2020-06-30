@@ -14,6 +14,7 @@ readme = "README.md"
 [dependencies]
 prometheus = "0.8"
 rocket = { git = "https://github.com/SergioBenitez/Rocket", branch = "async" }
+tokio = { version = "0.2", features = ["macros"] }
 
 [dev-dependencies]
 once_cell = "1.2.0"

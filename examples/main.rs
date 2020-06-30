@@ -36,7 +36,8 @@ mod routes {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let prometheus = PrometheusMetrics::new();
     prometheus
         .registry()
@@ -47,5 +48,6 @@ fn main() {
         .mount("/", routes![routes::hello, routes::hello_post])
         .mount("/metrics", prometheus)
         .launch()
+        .await
         .expect("Could not launch Rocket!");
 }

@@ -15,12 +15,13 @@ Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
 ```rust
 use rocket_prometheus::PrometheusMetrics;
 
+# async fn docs() {
 let prometheus = PrometheusMetrics::new();
-# if false {
 rocket::ignite()
     .attach(prometheus.clone())
     .mount("/metrics", prometheus)
-    .launch();
+    .launch()
+    .await;
 # }
 ```
 
@@ -90,7 +91,8 @@ pub fn hello(name: &RawStr) -> String {
     format!("Hello, {}!", name)
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let prometheus = PrometheusMetrics::new();
     prometheus
         .registry()
@@ -101,7 +103,8 @@ fn main() {
         .attach(prometheus.clone())
         .mount("/", routes![hello])
         .mount("/metrics", prometheus)
-        .launch();
+        .launch()
+        .await;
     # }
 }
 ```
@@ -154,12 +157,13 @@ const NANOS_PER_SEC: f64 = 1_000_000_000_f64;
 /// ```rust
 /// use rocket_prometheus::PrometheusMetrics;
 ///
+/// # async fn docs() {
 /// let prometheus = PrometheusMetrics::new();
-/// # if false {
 /// rocket::ignite()
 ///     .attach(prometheus.clone())
 ///     .mount("/metrics", prometheus)
-///     .launch();
+///     .launch()
+///     .await;
 /// # }
 /// ```
 ///
