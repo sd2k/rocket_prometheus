@@ -117,7 +117,7 @@ use std::{env, time::Instant};
 use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncoder};
 use rocket::{
     fairing::{Fairing, Info, Kind},
-    handler::{HandlerFuture, Outcome},
+    handler::Outcome,
     http::Method,
     Data, Handler, Request, Response, Route,
 };
@@ -317,8 +317,9 @@ impl Fairing for PrometheusMetrics {
     }
 }
 
+#[rocket::async_trait]
 impl Handler for PrometheusMetrics {
-    fn handle<'r>(&self, req: &'r Request, _: Data) -> HandlerFuture<'r> {
+    async fn handle<'r, 's: 'r>(&'s self, req: &'r Request<'_>, _: Data) -> Outcome<'r> {
         // Gather the metrics.
         let mut buffer = vec![];
         let encoder = TextEncoder::new();
