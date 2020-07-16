@@ -5,7 +5,7 @@ extern crate rocket;
 
 use once_cell::sync::Lazy;
 use prometheus::{opts, IntCounterVec};
-use rocket::{http::ContentType, local::Client};
+use rocket::{http::ContentType, local::blocking::Client};
 use rocket_prometheus::PrometheusMetrics;
 use serde_json::json;
 
@@ -41,8 +41,8 @@ mod routes {
 #[cfg(test)]
 mod test {
     use super::*;
-    #[rocket::async_test]
-    async fn test_basic() {
+    #[test]
+    fn test_basic() {
         let prometheus = PrometheusMetrics::new();
         prometheus
             .registry()
@@ -52,18 +52,17 @@ mod test {
             .attach(prometheus.clone())
             .mount("/", routes![routes::hello, routes::hello_post])
             .mount("/metrics", prometheus);
-        let client = Client::new(rocket).await.expect("valid rocket instance");
-        client.get("/hello/foo").dispatch().await;
-        client.get("/hello/foo").dispatch().await;
-        client.get("/hello/bar").dispatch().await;
+        let client = Client::new(rocket).expect("valid rocket instance");
+        client.get("/hello/foo").dispatch();
+        client.get("/hello/foo").dispatch();
+        client.get("/hello/bar").dispatch();
         client
             .post("/hello/bar")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&json!({"age": 50})).unwrap())
-            .dispatch()
-            .await;
-        let mut metrics = client.get("/metrics").dispatch().await;
-        let response = metrics.body_string().await.unwrap();
+            .dispatch();
+        let metrics = client.get("/metrics").dispatch();
+        let response = metrics.into_string().unwrap();
         assert_eq!(
             response
                 .lines()
