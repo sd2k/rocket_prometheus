@@ -117,9 +117,9 @@ use std::{env, time::Instant};
 use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncoder};
 use rocket::{
     fairing::{Fairing, Info, Kind},
-    handler::Outcome,
+    handler::{Handler, Outcome},
     http::Method,
-    Data, Handler, Request, Response, Route,
+    Data, Request, Response, Route,
 };
 
 /// Re-export Prometheus so users can use it without having to explicitly
@@ -286,11 +286,11 @@ impl Fairing for PrometheusMetrics {
         }
     }
 
-    async fn on_request<'a>(&'a self, req: &'a mut Request<'_>, _: &'a Data) {
+    async fn on_request(&self, req: &mut Request<'_>, _: &Data) {
         req.local_cache(|| TimerStart(Some(Instant::now())));
     }
 
-    async fn on_response<'a>(&'a self, req: &'a Request<'_>, response: &'a mut Response<'_>) {
+    async fn on_response<'r>(&self, req: &'r Request<'_>, response: &mut Response<'r>) {
         // Don't touch metrics if the request didn't match a route.
         if req.route().is_none() {
             return;
