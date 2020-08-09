@@ -3,7 +3,7 @@ name = "rocket_prometheus"
 description = """
 Prometheus instrumentation for Rocket applications.
 """
-version = "0.4.0"
+version = "0.6.0"
 authors = ["Ben Sully <ben@bsull.io>"]
 repository = "https://github.com/sd2k/rocket_prometheus"
 edition = "2018"
@@ -12,15 +12,15 @@ keywords = ["rocket", "prometheus", "instrumentation", "monitoring"]
 readme = "README.md"
 
 [dependencies]
-prometheus = "0.8"
-rocket = { git = "https://github.com/SergioBenitez/Rocket" }
-tokio = { version = "0.2", features = ["macros"] }
+prometheus = "0.9.0"
+rocket = { git = "https://github.com/SergioBenitez/Rocket", default-features = false}
 
 [dev-dependencies]
 once_cell = "1.2.0"
 rocket_contrib = { git = "https://github.com/SergioBenitez/Rocket" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+tokio = { version = "0.2", features = ["macros"] }
 
 [badges]
 maintenance = { status = "passively-maintained" }
