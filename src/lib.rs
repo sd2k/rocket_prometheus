@@ -64,7 +64,7 @@ The 'rocket' prefix of these metrics can be changed by setting the
 ## Custom Metrics
 
 Further metrics can be tracked by registering them with the registry of the
-PrometheusMetrics instance:
+`PrometheusMetrics` instance:
 
 ```rust
 #![feature(proc_macro_hygiene, decl_macro)]
@@ -127,7 +127,7 @@ use rocket::{
 pub use prometheus;
 
 /// Environment variable used to configure the namespace of metrics exposed
-/// by PrometheusMetrics.
+/// by `PrometheusMetrics`.
 const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
 
 #[derive(Clone)]
@@ -199,7 +199,7 @@ impl PrometheusMetrics {
     ///
     /// You can use this to register further metrics,
     /// causing them to be exposed along with the default metrics
-    /// on the PrometheusMetrics handler.
+    /// on the `PrometheusMetrics` handler.
     ///
     /// ```rust
     /// use once_cell::sync::Lazy;
@@ -214,6 +214,7 @@ impl PrometheusMetrics {
     /// let prometheus = PrometheusMetrics::new();
     /// prometheus.registry().register(Box::new(MY_COUNTER.clone()));
     /// ```
+    #[must_use]
     pub fn registry(&self) -> &Registry {
         &self.registry
     }
