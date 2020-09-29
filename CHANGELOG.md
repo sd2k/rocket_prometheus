@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+
+- Add `version=0.0.4` parameter to `Content-Type` header when returning metrics at the /metrics URL, as specified by the Prometheus [Exposition Formats specification](https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format).
 
 ## [0.7.0] - 2020-06-19
 ### Changed
