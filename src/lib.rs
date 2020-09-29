@@ -130,10 +130,6 @@ pub use prometheus;
 /// by PrometheusMetrics.
 const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
 
-// This can be removed when `duration_float` feature is stabilised - see
-// the `on_response` method of the Fairing impl for PrometheusMetrics.
-const NANOS_PER_SEC: f64 = 1_000_000_000_f64;
-
 #[derive(Clone)]
 #[must_use = "must be attached and mounted to a Rocket instance"]
 /// Fairing and Handler implementing request instrumentation.
@@ -302,11 +298,7 @@ impl Fairing for PrometheusMetrics {
 
         let start_time = request.local_cache(|| TimerStart(None));
         if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
-            // Can replace this with `duration.as_secs_f64()` when `duration_float`
-            // feature is stabilised (https://github.com/rust-lang/rust/issues/54361).
-            // let duration_secs = duration.as_secs_f64();
-            let duration_secs =
-                (duration.as_secs() as f64) + f64::from(duration.subsec_nanos()) / NANOS_PER_SEC;
+            let duration_secs = duration.as_secs_f64();
             self.http_requests_duration_seconds
                 .with_label_values(&[&endpoint, method, &status])
                 .observe(duration_secs);

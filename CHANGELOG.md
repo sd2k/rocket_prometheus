@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Add `version=0.0.4` parameter to `Content-Type` header when returning metrics at the /metrics URL, as specified by the Prometheus [Exposition Formats specification](https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format).
+- Use `Duration::as_secs_f64` instead of manually calculating nanoseconds when calculating request durations. This bumps the minimum supported Rust version to 1.38.0, which is unlikely to be a problem in practice, since Rocket still requires a nightly version of Rust.
 
 ## [0.7.0] - 2020-06-19
 ### Changed
