@@ -287,7 +287,7 @@ impl Fairing for PrometheusMetrics {
         }
     }
 
-    async fn on_request(&self, req: &mut Request<'_>, _: &Data) {
+    async fn on_request(&self, req: &mut Request<'_>, _: &mut Data) {
         req.local_cache(|| TimerStart(Some(Instant::now())));
     }
 
