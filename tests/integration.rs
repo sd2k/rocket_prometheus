@@ -52,7 +52,7 @@ mod test {
             .attach(prometheus.clone())
             .mount("/", routes![routes::hello, routes::hello_post])
             .mount("/metrics", prometheus);
-        let client = Client::new(rocket).expect("valid rocket instance");
+        let client = Client::untracked(rocket).expect("valid rocket instance");
         client.get("/hello/foo").dispatch();
         client.get("/hello/foo").dispatch();
         client.get("/hello/bar").dispatch();
