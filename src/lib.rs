@@ -330,8 +330,8 @@ impl Handler for PrometheusMetrics {
     }
 }
 
-impl Into<Vec<Route>> for PrometheusMetrics {
-    fn into(self) -> Vec<Route> {
-        vec![Route::new(Method::Get, "/", self)]
+impl From<PrometheusMetrics> for Vec<Route> {
+    fn from(other: PrometheusMetrics) -> Self {
+        vec![Route::new(Method::Get, "/", other)]
     }
 }
