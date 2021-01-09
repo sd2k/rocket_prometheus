@@ -7,7 +7,7 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rocket_prometheus = "0.6.0"
+rocket_prometheus = "0.7.0"
 ```
 
 Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
@@ -65,7 +65,7 @@ The 'rocket' prefix of these metrics can be changed by setting the
 ## Custom Metrics
 
 Further metrics can be tracked by registering them with the registry of the
-PrometheusMetrics instance:
+`PrometheusMetrics` instance:
 
 ```rust
 #[macro_use]
@@ -117,7 +117,8 @@ use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncod
 use rocket::{
     fairing::{Fairing, Info, Kind},
     handler::{Handler, Outcome},
-    http::Method,
+    http::{ContentType, Method},
+    response::Content,
     Data, Request, Response, Route,
 };
 
@@ -127,12 +128,8 @@ use rocket::{
 pub use prometheus;
 
 /// Environment variable used to configure the namespace of metrics exposed
-/// by PrometheusMetrics.
+/// by `PrometheusMetrics`.
 const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
-
-// This can be removed when `duration_float` feature is stabilised - see
-// the `on_response` method of the Fairing impl for PrometheusMetrics.
-const NANOS_PER_SEC: f64 = 1_000_000_000_f64;
 
 #[derive(Clone)]
 #[must_use = "must be attached and mounted to a Rocket instance"]
@@ -204,7 +201,7 @@ impl PrometheusMetrics {
     ///
     /// You can use this to register further metrics,
     /// causing them to be exposed along with the default metrics
-    /// on the PrometheusMetrics handler.
+    /// on the `PrometheusMetrics` handler.
     ///
     /// ```rust
     /// use once_cell::sync::Lazy;
@@ -219,6 +216,7 @@ impl PrometheusMetrics {
     /// let prometheus = PrometheusMetrics::new();
     /// prometheus.registry().register(Box::new(MY_COUNTER.clone()));
     /// ```
+    #[must_use]
     pub fn registry(&self) -> &Registry {
         &self.registry
     }
@@ -304,11 +302,7 @@ impl Fairing for PrometheusMetrics {
 
         let start_time = req.local_cache(|| TimerStart(None));
         if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
-            // Can replace this with `duration.as_secs_f64()` when `duration_float`
-            // feature is stabilised (https://github.com/rust-lang/rust/issues/54361).
-            // let duration_secs = duration.as_secs_f64();
-            let duration_secs =
-                (duration.as_secs() as f64) + f64::from(duration.subsec_nanos()) / NANOS_PER_SEC;
+            let duration_secs = duration.as_secs_f64();
             self.http_requests_duration_seconds
                 .with_label_values(&[&endpoint, method, &status])
                 .observe(duration_secs);
@@ -325,13 +319,23 @@ impl Handler for PrometheusMetrics {
         encoder
             .encode(&self.registry.gather(), &mut buffer)
             .unwrap();
-        let out = String::from_utf8(buffer).unwrap();
-        Outcome::from(req, out)
+        let body = String::from_utf8(buffer).unwrap();
+        Outcome::from(
+            req,
+            Content(
+                ContentType::with_params(
+                    "text",
+                    "plain",
+                    &[("version", "0.0.4"), ("charset", "utf-8")],
+                ),
+                body,
+            ),
+        )
     }
 }
 
-impl Into<Vec<Route>> for PrometheusMetrics {
-    fn into(self) -> Vec<Route> {
-        vec![Route::new(Method::Get, "/", self)]
+impl From<PrometheusMetrics> for Vec<Route> {
+    fn from(other: PrometheusMetrics) -> Self {
+        vec![Route::new(Method::Get, "/", other)]
     }
 }
