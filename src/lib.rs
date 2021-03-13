@@ -72,7 +72,6 @@ Further metrics can be tracked by registering them with the registry of the
 extern crate rocket;
 
 use once_cell::sync::Lazy;
-use rocket::http::RawStr;
 use rocket_prometheus::{
     prometheus::{opts, IntCounterVec},
     PrometheusMetrics,
@@ -84,7 +83,7 @@ static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
 });
 
 #[get("/hello/<name>")]
-pub fn hello(name: &RawStr) -> String {
+pub fn hello(name: &str) -> String {
     NAME_COUNTER.with_label_values(&[name]).inc();
     format!("Hello, {}!", name)
 }

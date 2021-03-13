@@ -13,14 +13,13 @@ static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
 });
 
 mod routes {
-    use rocket::http::RawStr;
     use rocket_contrib::json::Json;
     use serde::Deserialize;
 
     use super::NAME_COUNTER;
 
     #[get("/hello/<name>")]
-    pub fn hello(name: &RawStr) -> String {
+    pub fn hello(name: &str) -> String {
         NAME_COUNTER.with_label_values(&[name]).inc();
         format!("Hello, {}!", name)
     }
