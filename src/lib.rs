@@ -273,6 +273,38 @@ impl Default for PrometheusMetrics {
 #[derive(Copy, Clone)]
 struct TimerStart(Option<Instant>);
 
+/// A status code which tries not to allocate to produce a `&str` representation.
+enum StatusCode {
+    /// A 'standard' status code, i.e. between 100 and 999.
+    ///
+    /// Most status codes should be represented as this variant,
+    /// which doesn't allocate and provides a non-allocating `&str`
+    /// representation.
+    Standard(rocket::http::hyper::StatusCode),
+    /// A non-standard status code.
+    ///
+    /// This is the fallback option used when a status code can't be
+    /// parsed by [`http::StatusCode`]. It requires an allocation.
+    NonStandard(String),
+}
+
+impl StatusCode {
+    fn as_str(&self) -> &str {
+        match self {
+            Self::Standard(s) => s.as_str(),
+            Self::NonStandard(s) => s.as_str(),
+        }
+    }
+}
+
+impl From<u16> for StatusCode {
+    fn from(code: u16) -> Self {
+        rocket::http::hyper::StatusCode::from_u16(code)
+            .map(Self::Standard)
+            .unwrap_or_else(|_| Self::NonStandard(code.to_string()))
+    }
+}
+
 #[rocket::async_trait]
 impl Fairing for PrometheusMetrics {
     fn info(&self) -> Info {
@@ -294,16 +326,16 @@ impl Fairing for PrometheusMetrics {
 
         let endpoint = req.route().unwrap().uri.to_string();
         let method = req.method().as_str();
-        let status = response.status().code.to_string();
+        let status = StatusCode::from(response.status().code);
         self.http_requests_total
-            .with_label_values(&[&endpoint, method, &status])
+            .with_label_values(&[&endpoint, method, status.as_str()])
             .inc();
 
         let start_time = req.local_cache(|| TimerStart(None));
         if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
             let duration_secs = duration.as_secs_f64();
             self.http_requests_duration_seconds
-                .with_label_values(&[&endpoint, method, &status])
+                .with_label_values(&[&endpoint, method, status.as_str()])
                 .observe(duration_secs);
         }
     }
