@@ -21,9 +21,13 @@ mod routes {
 
     use super::NAME_COUNTER;
 
-    #[get("/hello/<name>")]
-    pub fn hello(name: &RawStr) -> String {
+    #[get("/hello/<name>?<caps>")]
+    pub fn hello(name: &RawStr, caps: Option<bool>) -> String {
         NAME_COUNTER.with_label_values(&[name]).inc();
+        let name = caps
+            .unwrap_or_default()
+            .then(|| name.to_uppercase())
+            .unwrap_or_else(|| name.to_string());
         format!("Hello, {}!", name)
     }
 
@@ -32,8 +36,12 @@ mod routes {
         age: u8,
     }
 
-    #[post("/hello/<name>", format = "json", data = "<person>")]
-    pub fn hello_post(name: String, person: Json<Person>) -> String {
+    #[post("/hello/<name>?<caps>", format = "json", data = "<person>")]
+    pub fn hello_post(name: String, person: Json<Person>, caps: Option<bool>) -> String {
+        let name = caps
+            .unwrap_or_default()
+            .then(|| name.to_uppercase())
+            .unwrap_or_else(|| name.to_string());
         format!("Hello, {} year old named {}!", person.age, name)
     }
 }
@@ -79,35 +87,35 @@ name_counter{name="bar"} 1
 name_counter{name="foo"} 2
 # HELP rocket_http_requests_duration_seconds HTTP request duration in seconds for all requests
 # TYPE rocket_http_requests_duration_seconds histogram
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="0.005"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="0.01"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="0.025"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="0.05"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="0.1"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="0.25"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="0.5"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="1"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="2.5"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="5"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="10"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="GET",status="200",le="+Inf"} 3
-rocket_http_requests_duration_seconds_count{endpoint="/hello/<name>",method="GET",status="200"} 3
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="0.005"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="0.01"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="0.025"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="0.05"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="0.1"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="0.25"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="0.5"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="1"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="2.5"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="5"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="10"} 1
-rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>",method="POST",status="200",le="+Inf"} 1
-rocket_http_requests_duration_seconds_count{endpoint="/hello/<name>",method="POST",status="200"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="0.005"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="0.01"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="0.025"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="0.05"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="0.1"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="0.25"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="0.5"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="1"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="2.5"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="5"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="10"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="GET",status="200",le="+Inf"} 3
+rocket_http_requests_duration_seconds_count{endpoint="/hello/<name>?<caps>",method="GET",status="200"} 3
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="0.005"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="0.01"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="0.025"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="0.05"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="0.1"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="0.25"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="0.5"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="1"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="2.5"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="5"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="10"} 1
+rocket_http_requests_duration_seconds_bucket{endpoint="/hello/<name>?<caps>",method="POST",status="200",le="+Inf"} 1
+rocket_http_requests_duration_seconds_count{endpoint="/hello/<name>?<caps>",method="POST",status="200"} 1
 # HELP rocket_http_requests_total Total number of HTTP requests
 # TYPE rocket_http_requests_total counter
-rocket_http_requests_total{endpoint="/hello/<name>",method="GET",status="200"} 3
-rocket_http_requests_total{endpoint="/hello/<name>",method="POST",status="200"} 1"#
+rocket_http_requests_total{endpoint="/hello/<name>?<caps>",method="GET",status="200"} 3
+rocket_http_requests_total{endpoint="/hello/<name>?<caps>",method="POST",status="200"} 1"#
     );
 }

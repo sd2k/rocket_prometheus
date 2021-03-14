@@ -19,9 +19,13 @@ mod routes {
 
     use super::NAME_COUNTER;
 
-    #[get("/hello/<name>")]
-    pub fn hello(name: &RawStr) -> String {
-        NAME_COUNTER.with_label_values(&[name]).inc();
+    #[get("/hello/<name>?<caps>")]
+    pub fn hello(name: &RawStr, caps: Option<bool>) -> String {
+        let name = caps
+            .unwrap_or_default()
+            .then(|| name.to_uppercase())
+            .unwrap_or_else(|| name.to_string());
+        NAME_COUNTER.with_label_values(&[&name]).inc();
         format!("Hello, {}!", name)
     }
 
@@ -30,8 +34,13 @@ mod routes {
         age: u8,
     }
 
-    #[post("/hello/<name>", format = "json", data = "<person>")]
-    pub fn hello_post(name: String, person: Json<Person>) -> String {
+    #[post("/hello/<name>?<caps>", format = "json", data = "<person>")]
+    pub fn hello_post(name: String, person: Json<Person>, caps: Option<bool>) -> String {
+        let name = caps
+            .unwrap_or_default()
+            .then(|| name.to_uppercase())
+            .unwrap_or_else(|| name.to_string());
+        NAME_COUNTER.with_label_values(&[&name]).inc();
         format!("Hello, {} year old named {}!", person.age, name)
     }
 }
