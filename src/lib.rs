@@ -292,8 +292,7 @@ impl StatusCode {
 impl From<u16> for StatusCode {
     fn from(code: u16) -> Self {
         rocket::http::hyper::StatusCode::from_u16(code)
-            .map(Self::Standard)
-            .unwrap_or_else(|_| Self::NonStandard(code.to_string()))
+            .map_or_else(|_| Self::NonStandard(code.to_string()), Self::Standard)
     }
 }
 
