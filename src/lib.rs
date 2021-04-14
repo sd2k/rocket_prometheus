@@ -15,14 +15,13 @@ Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
 ```rust
 use rocket_prometheus::PrometheusMetrics;
 
-# async fn docs() {
-let prometheus = PrometheusMetrics::new();
-rocket::ignite()
-    .attach(prometheus.clone())
-    .mount("/metrics", prometheus)
-    .launch()
-    .await;
-# }
+#[rocket::launch]
+fn launch() -> _ {
+    let prometheus = PrometheusMetrics::new();
+    rocket::build()
+        .attach(prometheus.clone())
+        .mount("/metrics", prometheus)
+}
 ```
 
 This will expose metrics like this at the /metrics endpoint of your application:
@@ -68,10 +67,8 @@ Further metrics can be tracked by registering them with the registry of the
 `PrometheusMetrics` instance:
 
 ```rust
-#[macro_use]
-extern crate rocket;
-
 use once_cell::sync::Lazy;
+use rocket::{get, launch, routes};
 use rocket_prometheus::{
     prometheus::{opts, IntCounterVec},
     PrometheusMetrics,
@@ -88,21 +85,17 @@ pub fn hello(name: &str) -> String {
     format!("Hello, {}!", name)
 }
 
-#[tokio::main]
-async fn main() {
+#[launch]
+fn launch() -> _ {
     let prometheus = PrometheusMetrics::new();
     prometheus
         .registry()
         .register(Box::new(NAME_COUNTER.clone()))
         .unwrap();
-    # if false {
-    rocket::ignite()
+    rocket::build()
         .attach(prometheus.clone())
         .mount("/", routes![hello])
         .mount("/metrics", prometheus)
-        .launch()
-        .await;
-    # }
 }
 ```
 
@@ -115,9 +108,9 @@ use std::{env, time::Instant};
 use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncoder};
 use rocket::{
     fairing::{Fairing, Info, Kind},
-    handler::{Handler, Outcome},
     http::{ContentType, Method},
     response::Content,
+    route::{Handler, Outcome},
     Data, Request, Response, Route,
 };
 
@@ -141,7 +134,7 @@ const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
 /// - `rocket_http_requests_duration_seconds` (labels: endpoint, method, status):
 ///   the request duration for all HTTP requests handled by Rocket.
 ///
-/// The 'rocket' prefix of these metrics can be changed by setting the
+/// The `rocket` prefix of these metrics can be changed by setting the
 /// `ROCKET_PROMETHEUS_NAMESPACE` environment variable.
 ///
 /// # Usage
@@ -152,14 +145,13 @@ const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
 /// ```rust
 /// use rocket_prometheus::PrometheusMetrics;
 ///
-/// # async fn docs() {
-/// let prometheus = PrometheusMetrics::new();
-/// rocket::ignite()
-///     .attach(prometheus.clone())
-///     .mount("/metrics", prometheus)
-///     .launch()
-///     .await;
-/// # }
+/// #[rocket::launch]
+/// fn launch() -> _ {
+///     let prometheus = PrometheusMetrics::new();
+///     rocket::build()
+///         .attach(prometheus.clone())
+///         .mount("/metrics", prometheus)
+/// }
 /// ```
 ///
 /// Metrics will then be available on the "/metrics" endpoint:

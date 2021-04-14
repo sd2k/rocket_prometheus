@@ -53,7 +53,7 @@ mod test {
             .registry()
             .register(Box::new(NAME_COUNTER.clone()))
             .unwrap();
-        let rocket = rocket::ignite()
+        let rocket = rocket::build()
             .attach(prometheus.clone())
             .mount("/", routes![routes::hello, routes::hello_post])
             .mount("/metrics", prometheus);

@@ -42,18 +42,15 @@ mod routes {
     }
 }
 
-#[tokio::main]
-async fn main() {
+#[launch]
+fn rocket() -> _ {
     let prometheus = PrometheusMetrics::new();
     prometheus
         .registry()
         .register(Box::new(NAME_COUNTER.clone()))
         .unwrap();
-    rocket::ignite()
+    rocket::build()
         .attach(prometheus.clone())
         .mount("/", routes![routes::hello, routes::hello_post])
         .mount("/metrics", prometheus)
-        .launch()
-        .await
-        .expect("Could not launch Rocket!");
 }
