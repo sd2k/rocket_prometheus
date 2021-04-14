@@ -215,7 +215,7 @@ impl PrometheusMetrics {
     /// prometheus.registry().register(Box::new(MY_COUNTER.clone()));
     /// ```
     #[must_use]
-    pub fn registry(&self) -> &Registry {
+    pub const fn registry(&self) -> &Registry {
         &self.registry
     }
 }
