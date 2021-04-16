@@ -334,7 +334,7 @@ impl Fairing for PrometheusMetrics {
 
 #[rocket::async_trait]
 impl Handler for PrometheusMetrics {
-    async fn handle<'r, 's: 'r>(&'s self, req: &'r Request<'_>, _: Data) -> Outcome<'r> {
+    async fn handle<'r>(&self, req: &'r Request<'_>, _: Data) -> Outcome<'r> {
         // Gather the metrics.
         let mut buffer = vec![];
         let encoder = TextEncoder::new();
