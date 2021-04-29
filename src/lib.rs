@@ -109,7 +109,7 @@ use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncod
 use rocket::{
     fairing::{Fairing, Info, Kind},
     http::{ContentType, Method},
-    response::Content,
+    response::content::Custom,
     route::{Handler, Outcome},
     Data, Request, Response, Route,
 };
@@ -344,7 +344,7 @@ impl Handler for PrometheusMetrics {
         let body = String::from_utf8(buffer).unwrap();
         Outcome::from(
             req,
-            Content(
+            Custom(
                 ContentType::with_params(
                     "text",
                     "plain",
