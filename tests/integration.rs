@@ -13,7 +13,7 @@ static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
 });
 
 mod routes {
-    use rocket_contrib::json::Json;
+    use rocket::serde::json::Json;
     use serde::Deserialize;
 
     use super::NAME_COUNTER;
