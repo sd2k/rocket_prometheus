@@ -348,7 +348,7 @@ impl Handler for PrometheusMetrics {
                 ContentType::with_params(
                     "text",
                     "plain",
-                    &[("version", "0.0.4"), ("charset", "utf-8")],
+                    [("version", "0.0.4"), ("charset", "utf-8")],
                 ),
                 body,
             ),
