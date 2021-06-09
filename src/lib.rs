@@ -305,7 +305,7 @@ impl Fairing for PrometheusMetrics {
         }
     }
 
-    async fn on_request(&self, req: &mut Request<'_>, _: &mut Data) {
+    async fn on_request(&self, req: &mut Request<'_>, _: &mut Data<'_>) {
         req.local_cache(|| TimerStart(Some(Instant::now())));
     }
 
@@ -334,7 +334,7 @@ impl Fairing for PrometheusMetrics {
 
 #[rocket::async_trait]
 impl Handler for PrometheusMetrics {
-    async fn handle<'r>(&self, req: &'r Request<'_>, _: Data) -> Outcome<'r> {
+    async fn handle<'r>(&self, req: &'r Request<'_>, _: Data<'r>) -> Outcome<'r> {
         // Gather the metrics.
         let mut buffer = vec![];
         let encoder = TextEncoder::new();
