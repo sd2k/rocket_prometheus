@@ -226,6 +226,14 @@ impl PrometheusMetrics {
         Self::with_registry(Registry::new())
     }
 
+    /// Create a new `PrometheusMetrics` using the default Prometheus `Registry`.
+    ///
+    /// This will cause the fairing to include metrics created by the various
+    /// `prometheus` macros, e.g.  `register_int_counter`.
+    pub fn with_default_registry() -> Self {
+        Self::with_registry(prometheus::default_registry().clone())
+    }
+
     /// Create a new `PrometheusMetrics` with a custom `Registry`.
     pub fn with_registry(registry: Registry) -> Self {
         let namespace = env::var(NAMESPACE_ENV_VAR).unwrap_or_else(|_| "rocket".into());
