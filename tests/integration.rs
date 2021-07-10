@@ -1,11 +1,9 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 
 use once_cell::sync::Lazy;
 use prometheus::{opts, IntCounterVec};
-use rocket::{http::ContentType, local::Client};
+use rocket::{http::ContentType, local::blocking::Client};
 use rocket_prometheus::PrometheusMetrics;
 use serde_json::json;
 
@@ -15,14 +13,13 @@ static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
 });
 
 mod routes {
-    use rocket::http::RawStr;
-    use rocket_contrib::json::Json;
+    use rocket::serde::json::Json;
     use serde::Deserialize;
 
     use super::NAME_COUNTER;
 
     #[get("/hello/<name>?<caps>")]
-    pub fn hello(name: &RawStr, caps: Option<bool>) -> String {
+    pub fn hello(name: &str, caps: Option<bool>) -> String {
         NAME_COUNTER.with_label_values(&[name]).inc();
         let name = caps
             .unwrap_or_default()
@@ -46,42 +43,45 @@ mod routes {
     }
 }
 
-#[test]
-fn main() {
-    let prometheus = PrometheusMetrics::new();
-    prometheus
-        .registry()
-        .register(Box::new(NAME_COUNTER.clone()))
-        .unwrap();
-    let rocket = rocket::ignite()
-        .attach(prometheus.clone())
-        .mount("/", routes![routes::hello, routes::hello_post])
-        .mount("/metrics", prometheus);
-    let client = Client::new(rocket).expect("valid rocket instance");
-    client.get("/hello/foo").dispatch();
-    client.get("/hello/foo").dispatch();
-    client.get("/hello/bar").dispatch();
-    client
-        .post("/hello/bar")
-        .header(ContentType::JSON)
-        .body(serde_json::to_string(&json!({"age": 50})).unwrap())
-        .dispatch();
-    let mut metrics = client.get("/metrics").dispatch();
-    let response = metrics.body_string().unwrap();
-    assert_eq!(
-        response
-            .lines()
-            .enumerate()
-            .filter_map(|(i, line)|
-            // Skip out the 'sum' lines since they depend on request duration.
-            if i != 18 && i != 32 {
-                Some(line)
-            } else {
-                None
-            })
-            .collect::<Vec<&str>>()
-            .join("\n"),
-        r#"# HELP name_counter Count of names
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_basic() {
+        let prometheus = PrometheusMetrics::new();
+        prometheus
+            .registry()
+            .register(Box::new(NAME_COUNTER.clone()))
+            .unwrap();
+        let rocket = rocket::build()
+            .attach(prometheus.clone())
+            .mount("/", routes![routes::hello, routes::hello_post])
+            .mount("/metrics", prometheus);
+        let client = Client::untracked(rocket).expect("valid rocket instance");
+        client.get("/hello/foo").dispatch();
+        client.get("/hello/foo").dispatch();
+        client.get("/hello/bar").dispatch();
+        client
+            .post("/hello/bar")
+            .header(ContentType::JSON)
+            .body(serde_json::to_string(&json!({"age": 50})).unwrap())
+            .dispatch();
+        let metrics = client.get("/metrics").dispatch();
+        let response = metrics.into_string().unwrap();
+        assert_eq!(
+            response
+                .lines()
+                .enumerate()
+                .filter_map(|(i, line)|
+                // Skip out the 'sum' lines since they depend on request duration.
+                if i != 18 && i != 32 {
+                    Some(line)
+                } else {
+                    None
+                })
+                .collect::<Vec<&str>>()
+                .join("\n"),
+            r#"# HELP name_counter Count of names
 # TYPE name_counter counter
 name_counter{name="bar"} 1
 name_counter{name="foo"} 2
@@ -117,5 +117,6 @@ rocket_http_requests_duration_seconds_count{endpoint="/hello/<name>?<caps>",meth
 # TYPE rocket_http_requests_total counter
 rocket_http_requests_total{endpoint="/hello/<name>?<caps>",method="GET",status="200"} 3
 rocket_http_requests_total{endpoint="/hello/<name>?<caps>",method="POST",status="200"} 1"#
-    );
+        );
+    }
 }

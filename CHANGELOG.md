@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Remove an allocation on every request when getting the `status` label, provided the status code is between 100 and 999.
+
 ## [0.8.0] - 2021-07-10
 ### Changed
 
