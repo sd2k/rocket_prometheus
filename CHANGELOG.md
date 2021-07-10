@@ -6,9 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.0] - 2021-07-10
 ### Changed
 
-- Update `prometheus` requirement to 0.11.
+- Update `prometheus` requirement to 0.12.
 - Add `version=0.0.4` parameter to `Content-Type` header when returning metrics at the /metrics URL, as specified by the Prometheus [Exposition Formats specification](https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format).
 - Use `Duration::as_secs_f64` instead of manually calculating nanoseconds when calculating request durations. This bumps the minimum supported Rust version to 1.38.0, which is unlikely to be a problem in practice, since Rocket still requires a nightly version of Rust.
 - Impl `From<PrometheusMetrics> for Vec<Route>` instead of `Into<Vec<Route>> for PrometheusMetrics`, since the former gives us the latter for free.
@@ -60,7 +62,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First version of the crate released to crates.io.
 
-[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.4.0...v0.5.0
