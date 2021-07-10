@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+- Remove an allocation on every request when getting the `status` label, provided the status code is between 100 and 999.
+
+## [0.8.0] - 2021-07-10
 ### Changed
 
 - Update `prometheus` requirement to 0.12.
@@ -13,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `Duration::as_secs_f64` instead of manually calculating nanoseconds when calculating request durations. This bumps the minimum supported Rust version to 1.38.0, which is unlikely to be a problem in practice, since Rocket still requires a nightly version of Rust.
 - Impl `From<PrometheusMetrics> for Vec<Route>` instead of `Into<Vec<Route>> for PrometheusMetrics`, since the former gives us the latter for free.
 - `PrometheusMetrics::registry` is now a `const fn`.
-- Remove an allocation on every request when getting the `status` label, provided the status code is between 100 and 999.
+- Add `PrometheusMetrics::with_default_registry` associated function, which creates a new `PrometheusMetrics` using the default global `prometheus::Registry` and will therefore expose metrics created by the various macros in the `prometheus` crate.
 
 ## [0.7.0] - 2020-06-19
 ### Changed
@@ -60,7 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First version of the crate released to crates.io.
 
-[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.4.0...v0.5.0

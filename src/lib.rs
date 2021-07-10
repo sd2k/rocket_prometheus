@@ -7,7 +7,7 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rocket_prometheus = "0.7.0"
+rocket_prometheus = "0.8.0"
 ```
 
 Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
@@ -217,6 +217,14 @@ impl PrometheusMetrics {
     /// Create a new `PrometheusMetrics`.
     pub fn new() -> Self {
         Self::with_registry(Registry::new())
+    }
+
+    /// Create a new `PrometheusMetrics` using the default Prometheus `Registry`.
+    ///
+    /// This will cause the fairing to include metrics created by the various
+    /// `prometheus` macros, e.g.  `register_int_counter`.
+    pub fn with_default_registry() -> Self {
+        Self::with_registry(prometheus::default_registry().clone())
     }
 
     /// Create a new `PrometheusMetrics` with a custom `Registry`.
