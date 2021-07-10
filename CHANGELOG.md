@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `Duration::as_secs_f64` instead of manually calculating nanoseconds when calculating request durations. This bumps the minimum supported Rust version to 1.38.0, which is unlikely to be a problem in practice, since Rocket still requires a nightly version of Rust.
 - Impl `From<PrometheusMetrics> for Vec<Route>` instead of `Into<Vec<Route>> for PrometheusMetrics`, since the former gives us the latter for free.
 - `PrometheusMetrics::registry` is now a `const fn`.
+- Add `PrometheusMetrics::with_default_registry` associated function, which creates a new `PrometheusMetrics` using the default global `prometheus::Registry` and will therefore expose metrics created by the various macros in the `prometheus` crate.
 
 ## [0.7.0] - 2020-06-19
 ### Changed
