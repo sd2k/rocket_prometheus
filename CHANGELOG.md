@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+
+- The two Rocket related metrics (`http_requests_total` and `http_requests_duration_seconds`) are now stored inside a separate registry to additional metrics. This allows multiple `PrometheusMetrics` fairings to exist even when using the global `prometheus::Registry`, such as the one used for metrics created by the macros in the `prometheus` crate. Previously this would cause a panic because the two fairing instances would attempt to register identical metrics to the same registry, which is an error. The implication of this is that the registry returned by `PrometheusMetrics::registry` no longer contains the Rocket related metrics. In practice this is unlikely to be a problem, since metrics from both registries are returned by the fairing's handler as before.
 
 ## [0.8.0] - 2021-07-10
 ### Changed
