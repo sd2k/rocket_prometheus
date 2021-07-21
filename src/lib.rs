@@ -7,7 +7,7 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rocket_prometheus = "0.8.0"
+rocket_prometheus = "0.8.1"
 ```
 
 Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
@@ -183,16 +183,32 @@ pub struct PrometheusMetrics {
     http_requests_total: IntCounterVec,
     http_requests_duration_seconds: HistogramVec,
 
-    // The registry used by the fairing.
-    registry: Registry,
+    // The registry used by the fairing for Rocket metrics.
+    //
+    // This registry is created by `PrometheusMetrics::with_registry` and is
+    // private to each `PrometheusMetrics` instance, allowing multiple
+    // `PrometheusMetrics` instances to share the same `extra_registry`.
+    //
+    // Previously the fairing tried to register the internal metrics on the `extra_registry`,
+    // which caused conflicts if the same registry was passed twice. This is now avoided
+    // by using an internal registry for those metrics.
+    rocket_registry: Registry,
+
+    // The registry used by the fairing for custom metrics.
+    //
+    // See `rocket_registry` for details on why these metrics are stored on a separate registry.
+    custom_registry: Registry,
 }
 
 impl PrometheusMetrics {
-    /// Get the registry used by this fairing.
+    /// Get the registry used by this fairing to track additional metrics.
     ///
     /// You can use this to register further metrics,
     /// causing them to be exposed along with the default metrics
     /// on the `PrometheusMetrics` handler.
+    ///
+    /// Note that the `http_requests_total` and `http_requests_duration_seconds` metrics
+    /// are _not_ included in this registry.
     ///
     /// ```rust
     /// use once_cell::sync::Lazy;
@@ -209,7 +225,7 @@ impl PrometheusMetrics {
     /// ```
     #[must_use]
     pub const fn registry(&self) -> &Registry {
-        &self.registry
+        &self.custom_registry
     }
 }
 
@@ -229,6 +245,7 @@ impl PrometheusMetrics {
 
     /// Create a new `PrometheusMetrics` with a custom `Registry`.
     pub fn with_registry(registry: Registry) -> Self {
+        let rocket_registry = Registry::new();
         let namespace = env::var(NAMESPACE_ENV_VAR).unwrap_or_else(|_| "rocket".into());
 
         let http_requests_total_opts =
@@ -237,10 +254,6 @@ impl PrometheusMetrics {
         let http_requests_total =
             IntCounterVec::new(http_requests_total_opts, &["endpoint", "method", "status"])
                 .unwrap();
-        registry
-            .register(Box::new(http_requests_total.clone()))
-            .unwrap();
-
         let http_requests_duration_seconds_opts = opts!(
             "http_requests_duration_seconds",
             "HTTP request duration in seconds for all requests"
@@ -251,14 +264,19 @@ impl PrometheusMetrics {
             &["endpoint", "method", "status"],
         )
         .unwrap();
-        registry
+
+        rocket_registry
+            .register(Box::new(http_requests_total.clone()))
+            .unwrap();
+        rocket_registry
             .register(Box::new(http_requests_duration_seconds.clone()))
             .unwrap();
 
         Self {
             http_requests_total,
             http_requests_duration_seconds,
-            registry,
+            rocket_registry,
+            custom_registry: registry,
         }
     }
 }
@@ -347,7 +365,10 @@ impl Handler for PrometheusMetrics {
         let mut buffer = vec![];
         let encoder = TextEncoder::new();
         encoder
-            .encode(&self.registry.gather(), &mut buffer)
+            .encode(&self.custom_registry.gather(), &mut buffer)
+            .unwrap();
+        encoder
+            .encode(&self.rocket_registry.gather(), &mut buffer)
             .unwrap();
         let body = String::from_utf8(buffer).unwrap();
         Outcome::from(
@@ -367,5 +388,16 @@ impl Handler for PrometheusMetrics {
 impl From<PrometheusMetrics> for Vec<Route> {
     fn from(other: PrometheusMetrics) -> Self {
         vec![Route::new(Method::Get, "/", other)]
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::PrometheusMetrics;
+
+    #[test]
+    fn test_multiple_instantiations() {
+        let _pm1 = PrometheusMetrics::with_default_registry();
+        let _pm2 = PrometheusMetrics::with_default_registry();
     }
 }
