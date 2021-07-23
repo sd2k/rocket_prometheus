@@ -242,7 +242,7 @@ impl PrometheusMetrics {
             .register(Box::new(http_requests_duration_seconds.clone()))
             .unwrap();
 
-        PrometheusMetrics {
+        Self {
             http_requests_total,
             http_requests_duration_seconds,
             rocket_registry,
