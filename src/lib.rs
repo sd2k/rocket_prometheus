@@ -214,6 +214,10 @@ impl PrometheusMetrics {
     }
 
     /// Create a new [`PrometheusMetrics`] with a custom [`Registry`].
+    // Allow `clippy::missing_panics_doc` because we know:
+    // - the two metrics can't fail to be created (their config is valid)
+    // - registering the metrics can't fail (the registry is new, so there is no chance of metric duplication)
+    #[allow(clippy::missing_panics_doc)]
     pub fn with_registry(registry: Registry) -> Self {
         let rocket_registry = Registry::new();
         let namespace = env::var(NAMESPACE_ENV_VAR).unwrap_or_else(|_| "rocket".into());
