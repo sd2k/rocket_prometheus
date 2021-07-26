@@ -225,9 +225,11 @@ impl PrometheusMetrics {
         let http_requests_total_opts =
             opts!("http_requests_total", "Total number of HTTP requests")
                 .namespace(namespace.clone());
-        let http_requests_total =
-            IntCounterVec::new(http_requests_total_opts, &["endpoint", "method", "status"])
-                .unwrap();
+        let http_requests_total = IntCounterVec::new(
+            http_requests_total_opts,
+            &["endpoint", "method", "status", "referrer"],
+        )
+        .unwrap();
         let http_requests_duration_seconds_opts = opts!(
             "http_requests_duration_seconds",
             "HTTP request duration in seconds for all requests"
@@ -235,7 +237,7 @@ impl PrometheusMetrics {
         .namespace(namespace);
         let http_requests_duration_seconds = HistogramVec::new(
             http_requests_duration_seconds_opts.into(),
-            &["endpoint", "method", "status"],
+            &["endpoint", "method", "status", "referrer"],
         )
         .unwrap();
 
@@ -321,8 +323,9 @@ impl Fairing for PrometheusMetrics {
         let endpoint = request.route().unwrap().uri.to_string();
         let method = request.method().as_str();
         let status = response.status().code.to_string();
+        let referrer = request.headers().get("Referer").next().unwrap_or("?");
         self.http_requests_total
-            .with_label_values(&[&endpoint, method, &status])
+            .with_label_values(&[&endpoint, method, &status, referrer])
             .inc();
 
         let start_time = request.local_cache(|| TimerStart(None));
