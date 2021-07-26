@@ -8,7 +8,7 @@ Prometheus instrumentation for Rocket applications.
 
 ## Changes
 
-This repository is a form of the original by sd2k for the purposes of the CodETHS club. It adds...
+This repository is a fork of the original by sd2k for the purposes of the CodETHS club. It adds...
 
 * Tracking of the HTTP Referrer header
 
