@@ -332,7 +332,7 @@ impl Fairing for PrometheusMetrics {
         if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
             let duration_secs = duration.as_secs_f64();
             self.http_requests_duration_seconds
-                .with_label_values(&[&endpoint, method, &status])
+                .with_label_values(&[&endpoint, method, &status, referrer])
                 .observe(duration_secs);
         }
     }
