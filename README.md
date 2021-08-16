@@ -1,5 +1,7 @@
 # Rocket Prometheus
 
+**IF ANYONE IS IN THE DISTANT FUTURE LOOKING TO PRUNE THIS REPO, PLEASE DON'T; ETHSBELL USES IT**
+
 [![Build Status](https://github.com/sd2k/rocket_prometheus/workflows/Rust/badge.svg)](https://github.com/sd2k/rocket_prometheus/actions)
 [![docs.rs](https://docs.rs/rocket_prometheus/badge.svg)](https://docs.rs/rocket_prometheus)
 [![crates.io](https://img.shields.io/crates/v/rocket_prometheus.svg)](https://crates.io/crates/rocket_prometheus)
@@ -11,6 +13,7 @@ Prometheus instrumentation for Rocket applications.
 This repository is a fork of the original by sd2k for the purposes of the CodETHS club. It adds...
 
 * Tracking of the HTTP Referrer header
+* Tracking of client IP addresses
 
 ## Usage
 
