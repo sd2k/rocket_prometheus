@@ -1,5 +1,10 @@
 {
 	"cSpell.words": [
+		"ETHS",
+		"chrono",
+		"clippy",
+		"ethsbell",
 		"referer"
-	]
+	],
+	"rust-analyzer.cargo.features": [],
 }

@@ -14,6 +14,7 @@ This repository is a fork of the original by sd2k for the purposes of the CodETH
 
 * Tracking of the HTTP Referrer header
 * Tracking of client IP addresses
+* Nightly pruning of metrics to prevent performance degradation over time
 
 ## Usage
 

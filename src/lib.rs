@@ -110,9 +110,19 @@ fn main() {
 #![deny(missing_docs)]
 #![forbid(unsafe_code)]
 
-use std::{env, time::Instant};
+use std::{
+    env,
+    sync::{Arc, RwLock},
+    time::Instant,
+};
 
-use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncoder};
+use chrono::{Local, NaiveDate};
+use lazy_static::lazy_static;
+/// Re-export Prometheus so users can use it without having to explicitly
+/// add a specific version to their dependencies, which can result in
+/// mysterious compiler error messages.
+pub use prometheus;
+use prometheus::{opts, CounterVec, Encoder, IntCounterVec, Registry, TextEncoder};
 use rocket::{
     fairing::{Fairing, Info, Kind},
     handler::Outcome,
@@ -121,14 +131,14 @@ use rocket::{
     Data, Handler, Request, Response, Route,
 };
 
-/// Re-export Prometheus so users can use it without having to explicitly
-/// add a specific version to their dependencies, which can result in
-/// mysterious compiler error messages.
-pub use prometheus;
-
 /// Environment variable used to configure the namespace of metrics exposed
 /// by `PrometheusMetrics`.
 const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
+
+lazy_static! {
+    static ref LAST_PRUNED: Arc<RwLock<NaiveDate>> =
+        Arc::new(RwLock::new(NaiveDate::from_ymd(2000, 1, 1)));
+}
 
 #[derive(Clone)]
 #[must_use = "must be attached and mounted to a Rocket instance"]
@@ -188,7 +198,7 @@ const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
 pub struct PrometheusMetrics {
     // Standard metrics tracked by the fairing.
     http_requests_total: IntCounterVec,
-    http_requests_duration_seconds: HistogramVec,
+    http_requests_duration_seconds: CounterVec,
 
     // The registry used by the fairing for Rocket metrics.
     //
@@ -235,7 +245,7 @@ impl PrometheusMetrics {
             "HTTP request duration in seconds for all requests"
         )
         .namespace(namespace);
-        let http_requests_duration_seconds = HistogramVec::new(
+        let http_requests_duration_seconds = CounterVec::new(
             http_requests_duration_seconds_opts.into(),
             &["endpoint", "method", "status", "referrer", "remote"],
         )
@@ -315,6 +325,12 @@ impl Fairing for PrometheusMetrics {
     }
 
     fn on_response(&self, request: &Request, response: &mut Response) {
+        if *LAST_PRUNED.read().unwrap() < Local::now().date().naive_local() {
+            println!("Pruned metrics!");
+            self.http_requests_total.reset();
+            self.http_requests_duration_seconds.reset();
+            *LAST_PRUNED.write().unwrap() = Local::now().date().naive_local();
+        }
         // Don't touch metrics if the request didn't match a route.
         if request.route().is_none() {
             return;
@@ -337,7 +353,7 @@ impl Fairing for PrometheusMetrics {
             let duration_secs = duration.as_secs_f64();
             self.http_requests_duration_seconds
                 .with_label_values(&[&endpoint, method, &status, referrer, &remote])
-                .observe(duration_secs);
+                .inc_by(duration_secs);
         }
     }
 }
