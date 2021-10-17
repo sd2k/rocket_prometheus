@@ -3,7 +3,7 @@ name = "rocket_prometheus"
 description = """
 Prometheus instrumentation for Rocket applications.
 """
-version = "0.8.1"
+version = "0.9.0"
 authors = ["Ben Sully <ben@bsull.io>"]
 repository = "https://github.com/sd2k/rocket_prometheus"
 edition = "2018"

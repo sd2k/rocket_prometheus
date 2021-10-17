@@ -7,7 +7,7 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rocket_prometheus = "0.8.1"
+rocket_prometheus = "0.9.0"
 ```
 
 Then attach and mount a [`PrometheusMetrics`] instance to your Rocket app:
