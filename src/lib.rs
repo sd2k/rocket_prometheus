@@ -7,10 +7,10 @@ Add this crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rocket_prometheus = "0.8.1"
+rocket_prometheus = "0.9.0"
 ```
 
-Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
+Then attach and mount a [`PrometheusMetrics`] instance to your Rocket app:
 
 ```rust
 use rocket_prometheus::PrometheusMetrics;
@@ -64,7 +64,7 @@ The 'rocket' prefix of these metrics can be changed by setting the
 ## Custom Metrics
 
 Further metrics can be tracked by registering them with the registry of the
-`PrometheusMetrics` instance:
+[`PrometheusMetrics`] instance:
 
 ```rust
 use once_cell::sync::Lazy;
@@ -201,49 +201,16 @@ pub struct PrometheusMetrics {
 }
 
 impl PrometheusMetrics {
-    /// Get the registry used by this fairing to track additional metrics.
-    ///
-    /// You can use this to register further metrics,
-    /// causing them to be exposed along with the default metrics
-    /// on the `PrometheusMetrics` handler.
-    ///
-    /// Note that the `http_requests_total` and `http_requests_duration_seconds` metrics
-    /// are _not_ included in this registry.
-    ///
-    /// ```rust
-    /// use once_cell::sync::Lazy;
-    /// use prometheus::{opts, IntCounter};
-    /// use rocket_prometheus::PrometheusMetrics;
-    ///
-    /// static MY_COUNTER: Lazy<IntCounter> = Lazy::new(|| {
-    ///     IntCounter::new("my_counter", "A counter I use a lot")
-    ///         .expect("Could not create counter")
-    /// });
-    ///
-    /// let prometheus = PrometheusMetrics::new();
-    /// prometheus.registry().register(Box::new(MY_COUNTER.clone()));
-    /// ```
-    #[must_use]
-    pub const fn registry(&self) -> &Registry {
-        &self.custom_registry
-    }
-}
-
-impl PrometheusMetrics {
-    /// Create a new `PrometheusMetrics`.
+    /// Create a new [`PrometheusMetrics`].
     pub fn new() -> Self {
         Self::with_registry(Registry::new())
     }
 
-    /// Create a new `PrometheusMetrics` using the default Prometheus `Registry`.
-    ///
-    /// This will cause the fairing to include metrics created by the various
-    /// `prometheus` macros, e.g.  `register_int_counter`.
-    pub fn with_default_registry() -> Self {
-        Self::with_registry(prometheus::default_registry().clone())
-    }
-
-    /// Create a new `PrometheusMetrics` with a custom `Registry`.
+    /// Create a new [`PrometheusMetrics`] with a custom [`Registry`].
+    // Allow `clippy::missing_panics_doc` because we know:
+    // - the two metrics can't fail to be created (their config is valid)
+    // - registering the metrics can't fail (the registry is new, so there is no chance of metric duplication)
+    #[allow(clippy::missing_panics_doc)]
     pub fn with_registry(registry: Registry) -> Self {
         let rocket_registry = Registry::new();
         let namespace = env::var(NAMESPACE_ENV_VAR).unwrap_or_else(|_| "rocket".into());
@@ -278,6 +245,41 @@ impl PrometheusMetrics {
             rocket_registry,
             custom_registry: registry,
         }
+    }
+
+    /// Create a new [`PrometheusMetrics`] using the default Prometheus [`Registry`].
+    ///
+    /// This will cause the fairing to include metrics created by the various
+    /// `prometheus` macros, e.g.  `register_int_counter`.
+    pub fn with_default_registry() -> Self {
+        Self::with_registry(prometheus::default_registry().clone())
+    }
+
+    /// Get the registry used by this fairing to track additional metrics.
+    ///
+    /// You can use this to register further metrics,
+    /// causing them to be exposed along with the default metrics
+    /// on the [`PrometheusMetrics`] handler.
+    ///
+    /// Note that the `http_requests_total` and `http_requests_duration_seconds` metrics
+    /// are _not_ included in this registry.
+    ///
+    /// ```rust
+    /// use once_cell::sync::Lazy;
+    /// use prometheus::{opts, IntCounter};
+    /// use rocket_prometheus::PrometheusMetrics;
+    ///
+    /// static MY_COUNTER: Lazy<IntCounter> = Lazy::new(|| {
+    ///     IntCounter::new("my_counter", "A counter I use a lot")
+    ///         .expect("Could not create counter")
+    /// });
+    ///
+    /// let prometheus = PrometheusMetrics::new();
+    /// prometheus.registry().register(Box::new(MY_COUNTER.clone()));
+    /// ```
+    #[must_use]
+    pub const fn registry(&self) -> &Registry {
+        &self.custom_registry
     }
 }
 

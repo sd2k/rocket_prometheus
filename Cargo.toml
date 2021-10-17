@@ -3,7 +3,7 @@ name = "rocket_prometheus"
 description = """
 Prometheus instrumentation for Rocket applications.
 """
-version = "0.8.1"
+version = "0.9.0"
 authors = ["Ben Sully <ben@bsull.io>"]
 repository = "https://github.com/sd2k/rocket_prometheus"
 edition = "2018"
@@ -12,7 +12,7 @@ keywords = ["rocket", "prometheus", "instrumentation", "monitoring"]
 readme = "README.md"
 
 [dependencies]
-prometheus = { version = "0.12", default-features = false }
+prometheus = { version = "0.13", default-features = false }
 rocket = "0.5.0-rc.1"
 
 [dev-dependencies]
