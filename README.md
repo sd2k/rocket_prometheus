@@ -9,11 +9,12 @@ Prometheus instrumentation for Rocket applications.
 
 ## Usage
 
-Add this crate to your `Cargo.toml`:
+Add this crate to your `Cargo.toml` alongside Rocket 0.5.0-rc.1:
 
 ```toml
 [dependencies]
-rocket_prometheus = "0.9.0"
+rocket = "0.5.0-rc.1"
+rocket_prometheus = "0.10.0-rc.1"
 ```
 
 Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
@@ -21,13 +22,12 @@ Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
 ```rust
 use rocket_prometheus::PrometheusMetrics;
 
-fn main() {
+#[rocket::launch]
+fn launch() -> _ {
     let prometheus = PrometheusMetrics::new();
-    rocket::ignite()
+    rocket::build()
         .attach(prometheus.clone())
         .mount("/metrics", prometheus)
-        .launch();
-}
 ```
 
 This will expose metrics like this at the /metrics endpoint of your application:
@@ -74,10 +74,8 @@ PrometheusMetrics instance:
 
 ```rust
 #[macro_use]
-extern crate rocket;
-
 use once_cell::sync::Lazy;
-use rocket::http::RawStr;
+use rocket::{get, launch, routes};
 use rocket_prometheus::{
     prometheus::{opts, IntCounterVec},
     PrometheusMetrics,
@@ -85,25 +83,25 @@ use rocket_prometheus::{
 
 static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
     IntCounterVec::new(opts!("name_counter", "Count of names"), &["name"])
-        .expect("Could not create lazy IntCounterVec")
+        .expect("Could not create NAME_COUNTER")
 });
 
 #[get("/hello/<name>")]
-pub fn hello(name: &RawStr) -> String {
+pub fn hello(name: &str) -> String {
     NAME_COUNTER.with_label_values(&[name]).inc();
     format!("Hello, {}!", name)
 }
 
-fn main() {
+#[launch]
+fn launch() -> _ {
     let prometheus = PrometheusMetrics::new();
     prometheus
         .registry()
         .register(Box::new(NAME_COUNTER.clone()))
         .unwrap();
-    rocket::ignite()
+    rocket::build()
         .attach(prometheus.clone())
         .mount("/", routes![hello])
         .mount("/metrics", prometheus)
-        .launch();
 }
 ```
