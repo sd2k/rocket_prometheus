@@ -15,13 +15,13 @@ Then attach and mount a [`PrometheusMetrics`] instance to your Rocket app:
 ```rust
 use rocket_prometheus::PrometheusMetrics;
 
-let prometheus = PrometheusMetrics::new();
-# if false {
-rocket::ignite()
-    .attach(prometheus.clone())
-    .mount("/metrics", prometheus)
-    .launch();
-# }
+#[rocket::launch]
+fn launch() -> _ {
+    let prometheus = PrometheusMetrics::new();
+    rocket::build()
+        .attach(prometheus.clone())
+        .mount("/metrics", prometheus)
+}
 ```
 
 This will expose metrics like this at the /metrics endpoint of your application:
@@ -67,13 +67,8 @@ Further metrics can be tracked by registering them with the registry of the
 [`PrometheusMetrics`] instance:
 
 ```rust
-#![feature(proc_macro_hygiene, decl_macro)]
-
-#[macro_use]
-extern crate rocket;
-
 use once_cell::sync::Lazy;
-use rocket::http::RawStr;
+use rocket::{get, launch, routes};
 use rocket_prometheus::{
     prometheus::{opts, IntCounterVec},
     PrometheusMetrics,
@@ -85,24 +80,22 @@ static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
 });
 
 #[get("/hello/<name>")]
-pub fn hello(name: &RawStr) -> String {
+pub fn hello(name: &str) -> String {
     NAME_COUNTER.with_label_values(&[name]).inc();
     format!("Hello, {}!", name)
 }
 
-fn main() {
+#[launch]
+fn launch() -> _ {
     let prometheus = PrometheusMetrics::new();
     prometheus
         .registry()
         .register(Box::new(NAME_COUNTER.clone()))
         .unwrap();
-    # if false {
-    rocket::ignite()
+    rocket::build()
         .attach(prometheus.clone())
         .mount("/", routes![hello])
         .mount("/metrics", prometheus)
-        .launch();
-    # }
 }
 ```
 
@@ -115,10 +108,10 @@ use std::{env, time::Instant};
 use prometheus::{opts, Encoder, HistogramVec, IntCounterVec, Registry, TextEncoder};
 use rocket::{
     fairing::{Fairing, Info, Kind},
-    handler::Outcome,
     http::{ContentType, Method},
-    response::Content,
-    Data, Handler, Request, Response, Route,
+    response::content::Custom,
+    route::{Handler, Outcome},
+    Data, Request, Response, Route,
 };
 
 /// Re-export Prometheus so users can use it without having to explicitly
@@ -141,7 +134,7 @@ const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
 /// - `rocket_http_requests_duration_seconds` (labels: endpoint, method, status):
 ///   the request duration for all HTTP requests handled by Rocket.
 ///
-/// The 'rocket' prefix of these metrics can be changed by setting the
+/// The `rocket` prefix of these metrics can be changed by setting the
 /// `ROCKET_PROMETHEUS_NAMESPACE` environment variable.
 ///
 /// # Usage
@@ -152,13 +145,13 @@ const NAMESPACE_ENV_VAR: &str = "ROCKET_PROMETHEUS_NAMESPACE";
 /// ```rust
 /// use rocket_prometheus::PrometheusMetrics;
 ///
-/// let prometheus = PrometheusMetrics::new();
-/// # if false {
-/// rocket::ignite()
-///     .attach(prometheus.clone())
-///     .mount("/metrics", prometheus)
-///     .launch();
-/// # }
+/// #[rocket::launch]
+/// fn launch() -> _ {
+///     let prometheus = PrometheusMetrics::new();
+///     rocket::build()
+///         .attach(prometheus.clone())
+///         .mount("/metrics", prometheus)
+/// }
 /// ```
 ///
 /// Metrics will then be available on the "/metrics" endpoint:
@@ -300,6 +293,38 @@ impl Default for PrometheusMetrics {
 #[derive(Copy, Clone)]
 struct TimerStart(Option<Instant>);
 
+/// A status code which tries not to allocate to produce a `&str` representation.
+enum StatusCode {
+    /// A 'standard' status code, i.e. between 100 and 999.
+    ///
+    /// Most status codes should be represented as this variant,
+    /// which doesn't allocate and provides a non-allocating `&str`
+    /// representation.
+    Standard(rocket::http::hyper::StatusCode),
+    /// A non-standard status code.
+    ///
+    /// This is the fallback option used when a status code can't be
+    /// parsed by [`http::StatusCode`]. It requires an allocation.
+    NonStandard(String),
+}
+
+impl StatusCode {
+    fn as_str(&self) -> &str {
+        match self {
+            Self::Standard(s) => s.as_str(),
+            Self::NonStandard(s) => s.as_str(),
+        }
+    }
+}
+
+impl From<u16> for StatusCode {
+    fn from(code: u16) -> Self {
+        rocket::http::hyper::StatusCode::from_u16(code)
+            .map_or_else(|_| Self::NonStandard(code.to_string()), Self::Standard)
+    }
+}
+
+#[rocket::async_trait]
 impl Fairing for PrometheusMetrics {
     fn info(&self) -> Info {
         Info {
@@ -308,35 +333,36 @@ impl Fairing for PrometheusMetrics {
         }
     }
 
-    fn on_request(&self, request: &mut Request, _: &Data) {
-        request.local_cache(|| TimerStart(Some(Instant::now())));
+    async fn on_request(&self, req: &mut Request<'_>, _: &mut Data<'_>) {
+        req.local_cache(|| TimerStart(Some(Instant::now())));
     }
 
-    fn on_response(&self, request: &Request, response: &mut Response) {
+    async fn on_response<'r>(&self, req: &'r Request<'_>, response: &mut Response<'r>) {
         // Don't touch metrics if the request didn't match a route.
-        if request.route().is_none() {
+        if req.route().is_none() {
             return;
         }
 
-        let endpoint = request.route().unwrap().uri.to_string();
-        let method = request.method().as_str();
-        let status = response.status().code.to_string();
+        let endpoint = req.route().unwrap().uri.as_str();
+        let method = req.method().as_str();
+        let status = StatusCode::from(response.status().code);
         self.http_requests_total
-            .with_label_values(&[&endpoint, method, &status])
+            .with_label_values(&[endpoint, method, status.as_str()])
             .inc();
 
-        let start_time = request.local_cache(|| TimerStart(None));
+        let start_time = req.local_cache(|| TimerStart(None));
         if let Some(duration) = start_time.0.map(|st| st.elapsed()) {
             let duration_secs = duration.as_secs_f64();
             self.http_requests_duration_seconds
-                .with_label_values(&[&endpoint, method, &status])
+                .with_label_values(&[endpoint, method, status.as_str()])
                 .observe(duration_secs);
         }
     }
 }
 
+#[rocket::async_trait]
 impl Handler for PrometheusMetrics {
-    fn handle<'r>(&self, req: &'r Request, _: Data) -> Outcome<'r> {
+    async fn handle<'r>(&self, req: &'r Request<'_>, _: Data<'r>) -> Outcome<'r> {
         // Gather the metrics.
         let mut buffer = vec![];
         let encoder = TextEncoder::new();
@@ -349,11 +375,11 @@ impl Handler for PrometheusMetrics {
         let body = String::from_utf8(buffer).unwrap();
         Outcome::from(
             req,
-            Content(
+            Custom(
                 ContentType::with_params(
                     "text",
                     "plain",
-                    &[("version", "0.0.4"), ("charset", "utf-8")],
+                    [("version", "0.0.4"), ("charset", "utf-8")],
                 ),
                 body,
             ),

@@ -73,8 +73,6 @@ Further metrics can be tracked by registering them with the registry of the
 PrometheusMetrics instance:
 
 ```rust
-#![feature(proc_macro_hygiene, decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 

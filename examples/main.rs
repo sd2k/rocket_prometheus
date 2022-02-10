@@ -1,5 +1,3 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 
@@ -13,14 +11,13 @@ static NAME_COUNTER: Lazy<IntCounterVec> = Lazy::new(|| {
 });
 
 mod routes {
-    use rocket::http::RawStr;
-    use rocket_contrib::json::Json;
+    use rocket::serde::json::Json;
     use serde::Deserialize;
 
     use super::NAME_COUNTER;
 
     #[get("/hello/<name>?<caps>")]
-    pub fn hello(name: &RawStr, caps: Option<bool>) -> String {
+    pub fn hello(name: &str, caps: Option<bool>) -> String {
         let name = caps
             .unwrap_or_default()
             .then(|| name.to_uppercase())
@@ -45,15 +42,15 @@ mod routes {
     }
 }
 
-fn main() {
+#[launch]
+fn rocket() -> _ {
     let prometheus = PrometheusMetrics::new();
     prometheus
         .registry()
         .register(Box::new(NAME_COUNTER.clone()))
         .unwrap();
-    rocket::ignite()
+    rocket::build()
         .attach(prometheus.clone())
         .mount("/", routes![routes::hello, routes::hello_post])
         .mount("/metrics", prometheus)
-        .launch();
 }
