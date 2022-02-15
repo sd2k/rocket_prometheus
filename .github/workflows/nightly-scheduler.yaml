@@ -1,4 +1,4 @@
-name: async-scheduled
+name: nightly-scheduled
 
 on:
   push:
@@ -12,8 +12,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-        ref: async
     - name: Install Rust nightly with clippy and rustfmt
       uses: actions-rs/toolchain@v1
       with:
