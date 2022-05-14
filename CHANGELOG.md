@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0-rc.2] - 2022-05-14
+### Changed
+
+- Upgrade Rocket dependency to 0.5.0-rc.2, and update for compatibility.
+
 ## [0.10.0-rc.1] - 2022-02-10
 ### Changed
 
