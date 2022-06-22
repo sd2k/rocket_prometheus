@@ -111,7 +111,7 @@ use rocket::{
     fairing::{Fairing, Info, Kind},
     http::{ContentType, Method},
     route::{Handler, Outcome},
-    Data, Request, Response, Route,
+    Data, Orbit, Request, Response, Rocket, Route,
 };
 
 /// Re-export Prometheus so users can use it without having to explicitly
@@ -405,7 +405,21 @@ impl Fairing for PrometheusMetrics {
     fn info(&self) -> Info {
         Info {
             name: "Prometheus metric collection",
-            kind: Kind::Request | Kind::Response,
+            kind: Kind::Liftoff | Kind::Request | Kind::Response,
+        }
+    }
+
+    async fn on_liftoff(&self, rocket: &Rocket<Orbit>) {
+        for route in rocket.routes() {
+            let uri = route.uri.as_str();
+            let method = route.method.as_str();
+            let status = StatusCode::from(200);
+
+            self.http_requests_total
+                .with_label_values(&[uri, method, status.as_str()]);
+
+            self.http_requests_duration_seconds
+                .with_label_values(&[uri, method, status.as_str()]);
         }
     }
 
