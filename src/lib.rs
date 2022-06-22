@@ -288,7 +288,7 @@ impl PrometheusMetrics {
     }
 
     /// Get `http_requests_duration_seconds` metric.
-    pub fn get_http_requests_duration_seconds(&self) -> &HistogramVec {
+    pub fn http_requests_duration_seconds(&self) -> &HistogramVec {
         &self.http_requests_duration_seconds
     }
 }
