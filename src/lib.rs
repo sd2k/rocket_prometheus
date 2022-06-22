@@ -283,7 +283,7 @@ impl PrometheusMetrics {
     }
 
     /// Get `http_requests_total` metric.
-    pub fn get_http_requests_total(&self) -> &IntCounterVec {
+    pub fn http_requests_total(&self) -> &IntCounterVec {
         &self.http_requests_total
     }
 
