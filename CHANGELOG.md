@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Add Liftoff Fairing with metrics initialization.
+
+- Add `PrometheusMetrics::get_http_requests_total` function.
+- Add `PrometheusMetrics::get_http_requests_duration_seconds` function.
 
 ## [0.10.0-rc.2] - 2022-05-14
 ### Changed

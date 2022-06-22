@@ -111,7 +111,7 @@ use rocket::{
     fairing::{Fairing, Info, Kind},
     http::{ContentType, Method},
     route::{Handler, Outcome},
-    Data, Orbit, Request, Response, Rocket, Route,
+    Data, Request, Response, Route,
 };
 
 /// Re-export Prometheus so users can use it without having to explicitly
@@ -281,6 +281,16 @@ impl PrometheusMetrics {
     pub const fn registry(&self) -> &Registry {
         &self.custom_registry
     }
+
+    /// Get `http_requests_total` metric.
+    pub fn get_http_requests_total(&self) -> &IntCounterVec {
+        &self.http_requests_total
+    }
+
+    /// Get `http_requests_duration_seconds` metric.
+    pub fn get_http_requests_duration_seconds(&self) -> &HistogramVec {
+        &self.http_requests_duration_seconds
+    }
 }
 
 impl Default for PrometheusMetrics {
@@ -405,21 +415,7 @@ impl Fairing for PrometheusMetrics {
     fn info(&self) -> Info {
         Info {
             name: "Prometheus metric collection",
-            kind: Kind::Liftoff | Kind::Request | Kind::Response,
-        }
-    }
-
-    async fn on_liftoff(&self, rocket: &Rocket<Orbit>) {
-        for route in rocket.routes() {
-            let uri = route.uri.as_str();
-            let method = route.method.as_str();
-            let status = StatusCode::from(200);
-
-            self.http_requests_total
-                .with_label_values(&[uri, method, status.as_str()]);
-
-            self.http_requests_duration_seconds
-                .with_label_values(&[uri, method, status.as_str()]);
+            kind: Kind::Request | Kind::Response,
         }
     }
 
