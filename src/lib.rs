@@ -282,12 +282,12 @@ impl PrometheusMetrics {
         &self.custom_registry
     }
 
-    /// Get `http_requests_total` metric.
+    /// Get the `http_requests_total` metric.
     pub fn http_requests_total(&self) -> &IntCounterVec {
         &self.http_requests_total
     }
 
-    /// Get `http_requests_duration_seconds` metric.
+    /// Get the `http_requests_duration_seconds` metric.
     pub fn http_requests_duration_seconds(&self) -> &HistogramVec {
         &self.http_requests_duration_seconds
     }
