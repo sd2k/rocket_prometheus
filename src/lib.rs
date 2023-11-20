@@ -3,11 +3,11 @@ Prometheus instrumentation for Rocket applications.
 
 # Usage
 
-Add this crate to your `Cargo.toml` alongside Rocket 0.5.0-rc.2:
+Add this crate to your `Cargo.toml` alongside Rocket 0.5.0:
 
 ```toml
 [dependencies]
-rocket = "0.5.0-rc.2"
+rocket = "0.5.0"
 rocket_prometheus = "0.10.0-rc.3"
 ```
 

@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+
+- Upgrade Rocket dependency to 0.5.0.
 
 ## [0.10.0-rc.3] - 2022-06-23
 ### Changed
@@ -88,7 +91,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First version of the crate released to crates.io.
 
-[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.0-rc.1...HEAD
+[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.0-rc.3...HEAD
+[0.10.0-rc.3]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.0-rc.2...v0.10.0-rc.3
+[0.10.0-rc.2]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.0-rc.1...v0.10.0-rc.2
 [0.10.0-rc.1]: https://github.com/sd2k/rocket_prometheus/compare/v0.9.0...v0.10.0-rc.1
 [0.9.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/sd2k/rocket_prometheus/compare/v0.8.0...v0.8.1
