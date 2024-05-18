@@ -198,6 +198,10 @@ pub struct PrometheusMetrics {
     //
     // See `rocket_registry` for details on why these metrics are stored on a separate registry.
     custom_registry: Registry,
+
+    // Option for request filtering. If it contains a function, said function should return true when
+    // the current request should be considered in metrics.
+    request_filter: Option<for<'a> fn(&'a Request<'_>) -> bool>,
 }
 
 impl PrometheusMetrics {
@@ -244,6 +248,7 @@ impl PrometheusMetrics {
             http_requests_duration_seconds,
             rocket_registry,
             custom_registry: registry,
+            request_filter: None,
         }
     }
 
@@ -290,6 +295,24 @@ impl PrometheusMetrics {
     /// Get the `http_requests_duration_seconds` metric.
     pub fn http_requests_duration_seconds(&self) -> &HistogramVec {
         &self.http_requests_duration_seconds
+    }
+
+    /// Set a filter for which request should be considered in metrics. The filter function should
+    /// return false when the request should be ignored.
+    ///
+    /// Example:
+    ///
+    /// ```rust
+    /// use rocket_prometheus::PrometheusMetrics;
+    ///
+    /// let prometheus = PrometheusMetrics::new()
+    ///     .with_request_filter(|request| {
+    ///         request.uri().path() != "/metrics"
+    ///     });
+    /// ```
+    pub fn with_request_filter(mut self, filter: for<'a> fn(&'a Request<'_>) -> bool) -> Self {
+        self.request_filter = Some(filter);
+        self
     }
 }
 
@@ -427,6 +450,13 @@ impl Fairing for PrometheusMetrics {
         // Don't touch metrics if the request didn't match a route.
         if req.route().is_none() {
             return;
+        }
+
+        // Don't touch metrics if the request touched a route we should ignore
+        if let Some(request_filter) = self.request_filter {
+            if !request_filter(req) {
+                return;
+            }
         }
 
         let endpoint = req.route().unwrap().uri.as_str();
