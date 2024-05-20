@@ -48,7 +48,8 @@ mod test {
     use super::*;
     #[test]
     fn test_basic() {
-        let prometheus = PrometheusMetrics::new();
+        let prometheus = PrometheusMetrics::new()
+            .with_request_filter(|request| request.uri().path() != "/metrics");
         prometheus
             .registry()
             .register(Box::new(NAME_COUNTER.clone()))
@@ -61,6 +62,7 @@ mod test {
         client.get("/hello/foo").dispatch();
         client.get("/hello/foo").dispatch();
         client.get("/hello/bar").dispatch();
+        client.get("/metrics").dispatch();
         client
             .post("/hello/bar")
             .header(ContentType::JSON)
