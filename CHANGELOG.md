@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2024-05-20
+### Added
+
+- Add `PrometheusMetrics::with_request_filter`, allowing requests to be omitted from metrics by passing a closure returning `false` ([#23](https://github.com/sd2k/rocket_prometheus/pull/23), by @Eijebong).
+
 ## [0.10.0] - 2023-11-20
 ### Changed
 
@@ -93,7 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First version of the crate released to crates.io.
 
-[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.1...HEAD
+[0.10.1]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.0-rc.3...v0.10.0
 [0.10.0-rc.3]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.0-rc.2...v0.10.0-rc.3
 [0.10.0-rc.2]: https://github.com/sd2k/rocket_prometheus/compare/v0.10.0-rc.1...v0.10.0-rc.2
