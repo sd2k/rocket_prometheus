@@ -12,7 +12,7 @@ keywords = ["rocket", "prometheus", "instrumentation", "monitoring"]
 readme = "README.md"
 
 [dependencies]
-prometheus = { version = "0.13", default-features = false }
+prometheus = { version = "0.14", default-features = false }
 rocket = "0.5.0"
 
 [dev-dependencies]
