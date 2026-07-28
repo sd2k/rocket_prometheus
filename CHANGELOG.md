@@ -7,43 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 0.11.0 - 2026-07-28
+
+### Changed
+
+- Upgrade Prometheus dependency to 0.14.
+
 ## [0.10.1] - 2024-05-20
+
 ### Added
 
 - Add `PrometheusMetrics::with_request_filter`, allowing requests to be omitted from metrics by passing a closure returning `false` ([#23](https://github.com/sd2k/rocket_prometheus/pull/23), by @Eijebong).
 
 ## [0.10.0] - 2023-11-20
+
 ### Changed
 
 - Upgrade Rocket dependency to 0.5.0.
 
 ## [0.10.0-rc.3] - 2022-06-23
+
 ### Changed
 
-- Add `PrometheusMetrics::http_requests_total` and `PrometheusMetrics::http_requests_duration_seconds` methods to get a reference to the fairing's internal Prometheus metrics. 
+- Add `PrometheusMetrics::http_requests_total` and `PrometheusMetrics::http_requests_duration_seconds` methods to get a reference to the fairing's internal Prometheus metrics.
 
 ## [0.10.0-rc.2] - 2022-05-14
+
 ### Changed
 
 - Upgrade Rocket dependency to 0.5.0-rc.2, and update for compatibility.
 
 ## [0.10.0-rc.1] - 2022-02-10
+
 ### Changed
 
 - Upgrade Rocket dependency to 0.5.0-rc.1, and make the fairing async.
 - Remove an allocation on every request when getting the `status` label, provided the status code is between 100 and 999.
 
 ## [0.9.0] - 2021-10-17
+
 ### Changed
 
 - Update `prometheus` requirement to 0.13.
 
 ## [0.8.1] - 2021-07-21
+
 ### Changed
 
 - The two Rocket related metrics (`http_requests_total` and `http_requests_duration_seconds`) are now stored inside a separate registry to additional metrics. This allows multiple `PrometheusMetrics` fairings to exist even when using the global `prometheus::Registry`, such as the one used for metrics created by the macros in the `prometheus` crate. Previously this would cause a panic because the two fairing instances would attempt to register identical metrics to the same registry, which is an error. The implication of this is that the registry returned by `PrometheusMetrics::registry` no longer contains the Rocket related metrics. In practice this is unlikely to be a problem, since metrics from both registries are returned by the fairing's handler as before.
 
 ## [0.8.0] - 2021-07-10
+
 ### Changed
 
 - Update `prometheus` requirement to 0.12.
@@ -54,41 +68,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `PrometheusMetrics::with_default_registry` associated function, which creates a new `PrometheusMetrics` using the default global `prometheus::Registry` and will therefore expose metrics created by the various macros in the `prometheus` crate.
 
 ## [0.7.0] - 2020-06-19
+
 ### Changed
 
 - Update `prometheus` requirement to 0.10.
 
 ## [0.6.0] - 2020-06-19
+
 ### Changed
 
 - Don't require the default features of the `prometheus` or `rocket` dependencies. This should improve compile times for crates which also don't require those features. This is a breaking change since we re-export `prometheus` (which will now have a reduced public API) but is unlikely to affect many users, since the Protobuf format has not been supported by Prometheus for some time.
 
 ## [0.5.0] - 2020-05-18
+
 ### Changed
 
 - Update `prometheus` requirement to 0.9.
 
 ## [0.4.0] - 2020-03-02
+
 ### Changed
 
 - Update `prometheus` requirement to 0.8.
 
 ## [0.3.2] - 2020-01-02
+
 ### Changed
 
 - Use `Instant` instead of `SystemTime` to track request durations. This should be more accurate and is infallible.
 
 ## [0.3.1] - 2020-01-02
+
 ### Added
 
 - Add `PrometheusMetrics::with_registry` associated function to allow metrics to be tracked in a custom registry.
 
 ## [0.3.0] - 2019-06-25
+
 ### Changed
 
 - Update `prometheus` requirement to 0.7.
 
 ## [0.2.0] - 2019-05-08
+
 ### Changed
 
 - Re-export `prometheus` library. This re-export is the recommended way of accessing the `prometheus` crate to avoid any dependency version mismatches.

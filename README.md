@@ -4,7 +4,6 @@
 [![docs.rs](https://docs.rs/rocket_prometheus/badge.svg)](https://docs.rs/rocket_prometheus)
 [![crates.io](https://img.shields.io/crates/v/rocket_prometheus.svg)](https://crates.io/crates/rocket_prometheus)
 
-
 Prometheus instrumentation for Rocket applications.
 
 ## Usage
@@ -14,7 +13,7 @@ Add this crate to your `Cargo.toml` alongside Rocket 0.5.0:
 ```toml
 [dependencies]
 rocket = "0.5.0"
-rocket_prometheus = "0.10.1"
+rocket_prometheus = "0.11.0"
 ```
 
 Then attach and mount a `PrometheusMetrics` instance to your Rocket app:
